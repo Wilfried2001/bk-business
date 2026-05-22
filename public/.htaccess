@@ -1,0 +1,18 @@
+# ============================================================
+#  Réécriture d'URL — Toutes les requêtes → index.php
+# ============================================================
+Options -Indexes
+RewriteEngine On
+
+# Autoriser les fichiers et dossiers existants (css, js, img)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Tout rediriger vers index.php
+RewriteRule ^ index.php [L]
+
+# Sécurité : bloquer l'accès aux fichiers sensibles
+<FilesMatch "\.(env|sql|md|log)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>

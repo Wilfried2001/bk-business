@@ -1,0 +1,23 @@
+{
+  "name": "bkbusiness/app",
+  "description": "Application de gestion BK Business",
+  "type": "project",
+  "autoload": {
+    "classmap": [
+      "core/",
+      "app/controllers/",
+      "app/models/",
+      "app/validation/"
+    ],
+    "files": [
+      "core/Helpers.php"
+    ]
+  },
+  "require": {
+    "php": ">=8.0"
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "preferred-install": "dist"
+  }
+}
