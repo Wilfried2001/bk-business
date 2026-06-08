@@ -4,7 +4,7 @@
         <h1 class="h3 mb-0"><i class="bi bi-file-earmark-text"></i> Rapports</h1>
         <p class="text-muted">Exporter et analyser les transactions.</p>
     </div>
-    <a href="<?= url('rapports/export?mois=' . $mois . '&annee=' . $annee) ?>" class="btn btn-primary">
+    <a href="<?= url('rapports/export?mois=' . $mois . '&annee=' . $annee . '&service=' . ($filtres['id_service'] ?? '')) ?>" class="btn btn-primary">
         <i class="bi bi-download"></i> Exporter CSV
     </a>
 </div>
@@ -18,6 +18,17 @@
     <div class="card-body">
         <form method="get" action="<?= url('rapports') ?>" class="row g-3 align-items-end">
             <div class="col-md-3">
+                <label class="form-label">Service</label>
+                <select name="service" class="form-select">
+                    <option value="">Tous</option>
+                    <?php foreach ($services as $service): ?>
+                        <option value="<?= e($service['id_service']) ?>" <?= $service['id_service'] === ($filtres['id_service'] ?? 0) ? 'selected' : '' ?>>
+                            <?= e($service['nom']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="col-md-3">
                 <label class="form-label">Mois</label>
                 <select name="mois" class="form-select">
                     <?php foreach ($moisLabels as $key => $label): ?>
@@ -25,12 +36,15 @@
                     <?php endforeach; ?>
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="form-label">Année</label>
                 <input type="number" name="annee" class="form-control" value="<?= e($annee) ?>" min="2020">
             </div>
             <div class="col-md-2">
-                <button type="submit" class="btn btn-primary">Filtrer</button>
+                <button type="submit" class="btn btn-primary w-100">Filtrer</button>
+            </div>
+            <div class="col-md-2">
+                <a href="<?= url('rapports') ?>" class="btn btn-outline-secondary w-100">Réinitialiser</a>
             </div>
         </form>
     </div>

@@ -56,6 +56,7 @@ class Router {
         require_once VIEWS_PATH . '/layouts/footer.php';
     }
 
+// Méthode dispatch : gère dispatch. 
     private function dispatch(array $action, array $params): void {
         $roles = $action['roles'] ?? [];
         $this->authorize($roles);
@@ -66,6 +67,7 @@ class Router {
         call_user_func_array([$controller, $method], $params);
     }
 
+// Méthode authorize : gère authorize. 
     private function authorize(array $roles): void {
         if (empty($roles)) {
             return;

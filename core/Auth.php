@@ -10,6 +10,7 @@ class Auth {
         Session::set('user_nom',  $user['nom']);
         Session::set('user_role', $user['role']);
         Session::set('logged_in', true);
+        Session::regenerate();
     }
 
     // Déconnecter

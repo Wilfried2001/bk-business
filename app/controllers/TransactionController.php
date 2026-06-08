@@ -1,6 +1,12 @@
 <?php
+// ============================================================
+//  app/controllers/TransactionController.php — Fichier commenté
+// ============================================================
+
+// Classe TransactionController : implémente la logique métier pour cette partie de l’application
 class TransactionController extends Controller {
 
+// Méthode index : gère index. 
     public function index(): void {
         Auth::requireAuth();
         require_once APP_PATH . '/models/Transaction.php';
@@ -8,20 +14,28 @@ class TransactionController extends Controller {
 
         $filtres = [
             'id_service'  => $this->get('service'),
+            'id_type'     => $this->get('type'),
+            'statut'      => $this->get('statut'),
+            'search'      => trim((string)$this->get('search')),
             'date_debut'  => $this->get('date_debut'),
             'date_fin'    => $this->get('date_fin'),
         ];
 
         $txModel      = new Transaction();
         $serviceModel = new Service();
+        require_once APP_PATH . '/models/TypeOperation.php';
+        $typeModel = new TypeOperation();
 
         $this->render('transactions/index', [
             'transactions' => $txModel->getAllWithDetails($filtres),
             'services'     => $serviceModel->getAllActifs(),
+            'types'        => $typeModel->all('libelle'),
             'filtres'      => $filtres,
+            'statuts'      => ['VALIDEE' => 'Validée', 'EN_COURS' => 'En cours', 'ANNULEE' => 'Annulée'],
         ], 'Transactions');
     }
 
+// Méthode create : gère create. 
     public function create(): void {
         Auth::requireRole(['AGENT', 'SUPERVISEUR', 'DG']);
         require_once APP_PATH . '/models/Service.php';
@@ -36,6 +50,7 @@ class TransactionController extends Controller {
         ], 'Nouvelle transaction');
     }
 
+// Méthode store : gère store. 
     public function store(): void {
         Auth::requireRole(['AGENT', 'SUPERVISEUR', 'DG']);
         $this->verifyCsrf();
@@ -157,11 +172,12 @@ class TransactionController extends Controller {
 
         } catch (Exception $e) {
             $txModel->rollback();
-            Session::flash('error', 'Erreur lors de l\'enregistrement : ' . $e->getMessage());
+            Session::flash('error', 'Erreur lors de l\'enregistrement. Veuillez réessayer plus tard.');
             $this->redirect('transactions/create');
         }
     }
 
+// Méthode show : gère show. 
     public function show(string $id): void {
         Auth::requireAuth();
         require_once APP_PATH . '/models/Transaction.php';
@@ -183,6 +199,64 @@ class TransactionController extends Controller {
         ], 'Détail transaction #' . $id);
     }
 
+// Méthode edit : gère edit. 
+    public function edit(string $id): void {
+        Auth::requireRole(['SUPERVISEUR', 'DG']);
+        require_once APP_PATH . '/models/Transaction.php';
+
+        $txModel = new Transaction();
+        $transaction = $txModel->getWithDetails((int)$id);
+
+        if (!$transaction) {
+            $this->redirect('transactions?error=not_found');
+        }
+
+        if ($transaction['statut'] === 'ANNULEE') {
+            Session::flash('error', 'Cette transaction est annulée et ne peut pas être modifiée.');
+            $this->redirect('transactions/' . $id);
+        }
+
+        $this->render('transactions/edit', [
+            'transaction' => $transaction,
+        ], 'Modifier transaction #' . $id);
+    }
+
+// Méthode update : gère update. 
+    public function update(string $id): void {
+        Auth::requireRole(['SUPERVISEUR', 'DG']);
+        $this->verifyCsrf();
+
+        require_once APP_PATH . '/models/Transaction.php';
+
+        $reference = trim($this->post('reference', ''));
+        $note      = trim($this->post('note', ''));
+
+        if (mb_strlen($reference, 'UTF-8') > 255 || mb_strlen($note, 'UTF-8') > 1000) {
+            Session::flash('error', 'Les champs sont trop longs. Référence max 255 caractères, note max 1000 caractères.');
+            $this->redirect('transactions/' . $id . '/edit');
+        }
+
+        $txModel = new Transaction();
+        $transaction = $txModel->find((int)$id);
+        if (!$transaction) {
+            $this->redirect('transactions?error=not_found');
+        }
+
+        if ($transaction['statut'] === 'ANNULEE') {
+            Session::flash('error', 'Cette transaction est annulée et ne peut pas être modifiée.');
+            $this->redirect('transactions/' . $id);
+        }
+
+        $txModel->update((int)$id, [
+            'reference' => $reference,
+            'note'      => $note,
+        ]);
+
+        Session::flash('success', 'Transaction mise à jour avec succès.');
+        $this->redirect('transactions/' . $id);
+    }
+
+// Méthode cancel : gère cancel. 
     public function cancel(string $id): void {
         Auth::requireRole(['SUPERVISEUR', 'DG']);
         $this->verifyCsrf();

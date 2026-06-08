@@ -334,14 +334,45 @@ function setupRowDetails() {
             btn.className = 'btn btn-sm btn-outline-primary d-lg-none ms-2 row-details-btn';
             btn.textContent = 'Détails';
             btn.addEventListener('click', () => {
-                const cells = Array.from(tr.querySelectorAll('td'));
+                // Use data attributes when available for clearer values
+                const ds = tr.dataset || {};
+                const idService = ds.idService || tr.getAttribute('data-id-service') || '';
+                const idSolde = ds.idSolde || tr.getAttribute('data-id-solde') || '';
+                const nomService = ds.nomService || tr.getAttribute('data-nom-service') || '';
+                const categorie = ds.categorie || tr.getAttribute('data-categorie') || '';
+                const typeSolde = ds.typeSolde || tr.getAttribute('data-type-solde') || '';
+                const montantDisplay = ds.montantDisplay || tr.getAttribute('data-montant-display') || ''; 
+                const montantVal = ds.montantVal || tr.getAttribute('data-montant-val') || '';
+                const seuilDisplay = ds.seuilDisplay || tr.getAttribute('data-seuil-display') || '';
+                const seuilVal = ds.seuilVal || tr.getAttribute('data-seuil-val') || '';
+                const enAlerte = ds.enAlerte || tr.getAttribute('data-en-alerte') || '0';
+
                 let html = '<dl class="row">';
-                for (let i = 0; i < cells.length; i++) {
-                    const h = headers[i] ?? ('Col ' + (i + 1));
-                    const v = cells[i].innerText.trim();
-                    html += `<dt class="col-5 fw-bold">${eHtml(h)}</dt><dd class="col-7">${eHtml(v)}</dd>`;
-                }
+                html += `<dt class="col-5 fw-bold">Service</dt><dd class="col-7">${eHtml(nomService)}</dd>`;
+                html += `<dt class="col-5 fw-bold">Catégorie</dt><dd class="col-7">${eHtml(categorie)}</dd>`;
+                html += `<dt class="col-5 fw-bold">Type</dt><dd class="col-7">${eHtml(typeSolde)}</dd>`;
+                html += `<dt class="col-5 fw-bold">Montant</dt><dd class="col-7">${eHtml(montantDisplay)}</dd>`;
+                html += `<dt class="col-5 fw-bold">Seuil</dt><dd class="col-7">${eHtml(seuilDisplay)}</dd>`;
+                html += `<dt class="col-5 fw-bold">Statut</dt><dd class="col-7">${enAlerte === '1' ? '<span class="badge bg-danger">Alerte</span>' : '<span class="badge bg-success">Normal</span>'}</dd>`;
                 html += '</dl>';
+
+                // If user can edit, append quick edit form
+                if (window.canEditSeuil) {
+                    const action = (window.baseUrl || '') + '/stocks/' + idService + '/seuil';
+                    const valeur = seuilVal !== undefined && seuilVal !== '' ? seuilVal : '';
+                    html += `
+                        <form action="${eHtml(action)}" method="post" class="mt-3">
+                            <input type="hidden" name="csrf_token" value="${eHtml(window.csrfToken || '')}">
+                            <input type="hidden" name="id_solde" value="${eHtml(idSolde)}">
+                            <input type="hidden" name="redirect_to" value="stocks">
+                            <div class="input-group">
+                                <input type="number" name="valeur_seuil" step="0.01" class="form-control form-control-sm" value="${eHtml(valeur)}" placeholder="Seuil" required>
+                                <button class="btn btn-primary btn-sm" type="submit">Enregistrer</button>
+                            </div>
+                        </form>
+                    `;
+                }
+
                 contentEl.innerHTML = html;
                 modal.show();
             });

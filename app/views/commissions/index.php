@@ -14,6 +14,17 @@
     <div class="card-body">
         <form method="get" action="<?= url('commissions') ?>" class="row g-3 align-items-end">
             <div class="col-md-3">
+                <label class="form-label"><i class="bi bi-building"></i> Service</label>
+                <select name="service" class="form-select">
+                    <option value="">Tous</option>
+                    <?php foreach ($services as $service): ?>
+                        <option value="<?= e($service['id_service']) ?>" <?= $service['id_service'] === ($filtres['id_service'] ?? 0) ? 'selected' : '' ?>>
+                            <?= e($service['nom']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="col-md-3">
                 <label class="form-label"><i class="bi bi-calendar3"></i> Mois</label>
                 <select name="mois" class="form-select">
                     <?php foreach ($moisLabels as $key => $label): ?>
@@ -21,7 +32,7 @@
                     <?php endforeach; ?>
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="form-label"><i class="bi bi-calendar2"></i> Année</label>
                 <input type="number" name="annee" class="form-control" value="<?= e($annee) ?>" min="2020">
             </div>
@@ -30,7 +41,10 @@
                     <i class="bi bi-funnel"></i> Filtrer
                 </button>
             </div>
-            <div class="col-md-4 text-end">
+            <div class="col-md-2">
+                <a href="<?= url('commissions') ?>" class="btn btn-outline-secondary w-100">Réinitialiser</a>
+            </div>
+            <div class="col-md-12 text-end mt-2">
                 <div class="fw-semibold text-success fs-5">
                     <i class="bi bi-cash-coin"></i> Total : <?= e(formatMontant((float)$total)) ?>
                 </div>

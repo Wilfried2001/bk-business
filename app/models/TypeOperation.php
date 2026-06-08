@@ -1,8 +1,14 @@
 <?php
+// ============================================================
+//  app/models/TypeOperation.php — Fichier commenté
+// ============================================================
+
+// Classe TypeOperation : implémente la logique métier pour cette partie de l’application
 class TypeOperation extends Model {
     protected string $table      = 'type_operation';
     protected string $primaryKey = 'id_type';
 
+// Méthode getByService : gère getByService. 
     public function getByService(int $idService): array {
         // Retourne les types d'opération compatibles selon la catégorie du service
         return $this->query("

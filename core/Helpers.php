@@ -44,20 +44,20 @@ function roleBadge(string $role): string {
         'DG'          => 'danger',
     ];
     $color = $colors[$role] ?? 'secondary';
-    return "<span class='badge bg-{$color}'>{$role}</span>";
+    return "<span class='badge bg-" . e($color) . "'>" . e($role) . "</span>";
 }
 
 // Badge couleur selon le statut d'alerte
 function alerteBadge(string $statut): string {
     $color = $statut === 'ACTIVE' ? 'danger' : 'success';
-    return "<span class='badge bg-{$color}'>{$statut}</span>";
+    return "<span class='badge bg-" . e($color) . "'>" . e($statut) . "</span>";
 }
 
 // Badge couleur selon la nature du mouvement
 function mouvementBadge(string $nature): string {
     $color = $nature === 'CREDIT' ? 'success' : 'danger';
     $icon  = $nature === 'CREDIT' ? '↑' : '↓';
-    return "<span class='badge bg-{$color}'>{$icon} {$nature}</span>";
+    return "<span class='badge bg-" . e($color) . "'>" . e($icon . ' ' . $nature) . "</span>";
 }
 
 // Vérifier si un champ est vide

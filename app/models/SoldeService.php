@@ -1,8 +1,14 @@
 <?php
+// ============================================================
+//  app/models/SoldeService.php — Fichier commenté
+// ============================================================
+
+// Classe SoldeService : implémente la logique métier pour cette partie de l’application
 class SoldeService extends Model {
     protected string $table      = 'solde_service';
     protected string $primaryKey = 'id_solde';
 
+// Méthode getByService : gère getByService. 
     public function getByService(int $idService): array {
         return $this->query("
             SELECT ss.*, s.nom AS nom_service, s.categorie,
@@ -14,6 +20,7 @@ class SoldeService extends Model {
         ", [$idService]);
     }
 
+// Méthode getSolde : gère getSolde. 
     public function getSolde(int $idService, string $typeSolde): ?array {
         return $this->queryOne("
             SELECT * FROM solde_service
@@ -21,6 +28,7 @@ class SoldeService extends Model {
         ", [$idService, $typeSolde]);
     }
 
+// Méthode getAllAvecSeuils : gère getAllAvecSeuils. 
     public function getAllAvecSeuils(): array {
         return $this->query("
             SELECT ss.*, s.nom AS nom_service, s.categorie,
@@ -34,6 +42,7 @@ class SoldeService extends Model {
         ");
     }
 
+// Méthode mettreAJour : gère mettreAJour. 
     public function mettreAJour(int $idSolde, float $variation, string $nature): array {
         // Récupérer le solde actuel
         $solde = $this->find($idSolde);

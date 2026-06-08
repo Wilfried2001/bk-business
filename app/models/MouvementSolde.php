@@ -1,8 +1,14 @@
 <?php
+// ============================================================
+//  app/models/MouvementSolde.php — Fichier commenté
+// ============================================================
+
+// Classe MouvementSolde : implémente la logique métier pour cette partie de l’application
 class MouvementSolde extends Model {
     protected string $table      = 'mouvement_solde';
     protected string $primaryKey = 'id_mouvement';
 
+// Méthode createMouvement : gère createMouvement. 
     public function createMouvement(int $idTransaction, int $idSolde, string $nature,
                                     float $montant, float $soldeAvant, float $soldeApres,
                                     string $motif = ''): int {
@@ -17,6 +23,7 @@ class MouvementSolde extends Model {
         ]);
     }
 
+// Méthode getByTransaction : gère getByTransaction. 
     public function getByTransaction(int $idTransaction): array {
         return $this->query("
             SELECT ms.*, ss.type_solde, s.nom AS nom_service

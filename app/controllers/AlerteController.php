@@ -1,6 +1,12 @@
 <?php
+// ============================================================
+//  app/controllers/AlerteController.php — Fichier commenté
+// ============================================================
+
+// Classe AlerteController : implémente la logique métier pour cette partie de l’application
 class AlerteController extends Controller {
 
+// Méthode index : gère index. 
     public function index(): void {
         Auth::requireRole(['SUPERVISEUR', 'DG']);
         require_once APP_PATH . '/models/AlerteSolde.php';
@@ -11,6 +17,7 @@ class AlerteController extends Controller {
         ], 'Alertes de stock');
     }
 
+// Méthode traiter : gère traiter. 
     public function traiter(string $id): void {
         Auth::requireRole(['SUPERVISEUR', 'DG']);
         $this->verifyCsrf();

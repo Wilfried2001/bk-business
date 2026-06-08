@@ -13,11 +13,15 @@
       "core/Helpers.php"
     ]
   },
+  "scripts": {
+    "serve": "php -S localhost:8000 -t public"
+  },
   "require": {
     "php": ">=8.0"
   },
   "config": {
     "optimize-autoloader": true,
-    "preferred-install": "dist"
+    "preferred-install": "dist",
+    "process-timeout": 0
   }
 }

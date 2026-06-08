@@ -4,12 +4,17 @@
         <p class="text-muted">Détail de la transaction.</p>
     </div>
     <?php if ($transaction['statut'] !== 'ANNULEE' && Auth::hasRole(['SUPERVISEUR', 'DG'])): ?>
-        <form action="<?= url('transactions/' . $transaction['id_transaction'] . '/cancel') ?>" method="post">
-            <?= csrfField() ?>
-            <button type="submit" class="btn btn-danger">
-                <i class="bi bi-x-circle"></i> Annuler
-            </button>
-        </form>
+        <div class="d-flex gap-2">
+            <a href="<?= url('transactions/' . $transaction['id_transaction'] . '/edit') ?>" class="btn btn-outline-primary">
+                <i class="bi bi-pencil"></i> Modifier
+            </a>
+            <form action="<?= url('transactions/' . $transaction['id_transaction'] . '/cancel') ?>" method="post">
+                <?= csrfField() ?>
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-x-circle"></i> Annuler
+                </button>
+            </form>
+        </div>
     <?php endif; ?>
 </div>
 <div class="row gy-4">

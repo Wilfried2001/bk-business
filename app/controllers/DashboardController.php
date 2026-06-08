@@ -1,6 +1,12 @@
 <?php
+// ============================================================
+//  app/controllers/DashboardController.php — Fichier commenté
+// ============================================================
+
+// Classe DashboardController : implémente la logique métier pour cette partie de l’application
 class DashboardController extends Controller {
 
+// Méthode index : gère index. 
     public function index(): void {
         Auth::requireAuth();
 
@@ -25,9 +31,14 @@ class DashboardController extends Controller {
 
         // Données commission uniquement pour Comptable et DG
         if (Auth::hasRole(['COMPTABLE', 'DG'])) {
-            $data['totalCommissionsMois'] = $commModel->getTotalCommissions();
-            $data['beneficesParService']  = $commModel->getBeneficesParService();
+            $data['totalCommissionsMois']  = $commModel->getTotalCommissions();
+            $data['beneficesParService']   = $commModel->getBeneficesParService();
+            $data['topProfitServices']     = $commModel->getTopServicesByCommission(5);
         }
+
+        $data['topServicesUsage']      = $txModel->getTopServicesByUsage(5);
+        $data['topServicesMontant']    = $txModel->getTopServicesByMontant(5);
+        $data['topAlertServices']      = $alerteModel->getTopServicesByAlertCount(5);
 
         // Données graphiques : transactions des 7 derniers jours
         $rows = $txModel->query(

@@ -141,6 +141,22 @@ CREATE TABLE seuil_alerte (
     CONSTRAINT fk_seuil_solde FOREIGN KEY (id_solde) REFERENCES solde_service(id_solde)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- ============================================================
+-- 8. TABLE : seuil_alerte_historique
+--    Historique des modifications de seuil pour audit et suivi
+-- ============================================================
+CREATE TABLE seuil_alerte_historique (
+    id_historique   BIGINT          NOT NULL AUTO_INCREMENT,
+    id_seuil        BIGINT          NOT NULL,
+    id_user         BIGINT          NOT NULL,
+    ancienne_valeur DECIMAL(15,2)   NOT NULL,
+    nouvelle_valeur DECIMAL(15,2)   NOT NULL,
+    date_modification DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id_historique),
+    CONSTRAINT fk_historique_seuil FOREIGN KEY (id_seuil) REFERENCES seuil_alerte(id_seuil),
+    CONSTRAINT fk_historique_user FOREIGN KEY (id_user) REFERENCES utilisateur(id_user)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 
 -- ============================================================
 -- 8. TABLE : alerte_solde
@@ -271,26 +287,26 @@ INSERT INTO utilisateur (nom, email, mot_de_passe, role) VALUES
 
 -- Services
 INSERT INTO service (nom, description, categorie) VALUES
-('Orange Money',   'Dépôts et retraits Orange Money',    'MOBILE_MONEY'),
-('MTN Money',      'Dépôts et retraits MTN Money',       'MOBILE_MONEY'),
+('Orange Money',   'Depots et retraits Orange Money',    'MOBILE_MONEY'),
+('MTN Money',      'Depots et retraits MTN Money',       'MOBILE_MONEY'),
 ('Ria',            'Transferts internationaux Ria',       'INTERNATIONAL'),
 ('MoneyGram',      'Transferts internationaux MoneyGram', 'INTERNATIONAL'),
 ('Western Union',  'Transferts internationaux WU',        'INTERNATIONAL'),
 ('CashExpress',    'Transferts CashExpress',              'INTERNATIONAL'),
 ('SMobil',         'Services SMobil',                     'ANNEXE'),
-('Scolarités',     'Paiement des frais de scolarité',     'ANNEXE'),
-('Canal+',         'Réabonnement Canal+',                 'ANNEXE'),
+('Scolarites',     'Paiement des frais de scolarite',     'ANNEXE'),
+('Canal+',         'Reabonnement Canal+',                 'ANNEXE'),
 ('ENEO',           'Paiement factures ENEO',              'ANNEXE'),
-('DHL',            'Envoi et réception colis DHL',        'ANNEXE');
+('DHL',            'Envoi et reception colis DHL',        'ANNEXE');
 
 -- Types d'opération avec impacts sur les soldes
 INSERT INTO type_operation (libelle, description, impact_float, impact_caisse) VALUES
-('Dépôt',           'Le client dépose de l argent',          -1, +1),  -- Float diminue, Caisse augmente
+('Depot',           'Le client depose de l argent',          -1, +1),  -- Float diminue, Caisse augmente
 ('Retrait',         'Le client retire de l argent',          +1, -1),  -- Float augmente, Caisse diminue
 ('Envoi',           'Le client envoie de l argent',           0, +1),  -- Caisse augmente
-('Réception',       'Le client reçoit de l argent',           0, -1),  -- Caisse diminue
+('Reception',       'Le client reçoit de l argent',           0, -1),  -- Caisse diminue
 ('Paiement',        'Paiement d une facture ou service',     -1, +1),  -- Float diminue, Caisse augmente
-('Réabonnement',    'Renouvellement d un abonnement',        -1, +1);  -- Float diminue, Caisse augmente
+('Reabonnement',    'Renouvellement d un abonnement',        -1, +1);  -- Float diminue, Caisse augmente
 
 -- Soldes initiaux : 2 soldes par service (FLOAT + CAISSE) = 22 lignes
 INSERT INTO solde_service (id_service, type_solde, montant_actuel) VALUES

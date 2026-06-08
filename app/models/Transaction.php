@@ -1,8 +1,14 @@
 <?php
+// ============================================================
+//  app/models/Transaction.php — Fichier commenté
+// ============================================================
+
+// Classe Transaction : implémente la logique métier pour cette partie de l’application
 class Transaction extends Model {
     protected string $table      = 'transaction';
     protected string $primaryKey = 'id_transaction';
 
+// Méthode getAllWithDetails : gère getAllWithDetails. 
     public function getAllWithDetails(array $filtres = []): array {
         $where  = ['1=1'];
         $params = [];
@@ -18,6 +24,22 @@ class Transaction extends Model {
         if (!empty($filtres['date_fin'])) {
             $where[]  = 'DATE(t.date_heure) <= ?';
             $params[] = $filtres['date_fin'];
+        }
+        if (!empty($filtres['id_type'])) {
+            $where[]  = 't.id_type = ?';
+            $params[] = $filtres['id_type'];
+        }
+        if (!empty($filtres['statut'])) {
+            $where[]  = 't.statut = ?';
+            $params[] = $filtres['statut'];
+        }
+        if (!empty($filtres['search'])) {
+            $where[]  = '(t.reference LIKE ? OR u.nom LIKE ? OR s.nom LIKE ? OR to2.libelle LIKE ?)';
+            $search = '%' . $filtres['search'] . '%';
+            $params[] = $search;
+            $params[] = $search;
+            $params[] = $search;
+            $params[] = $search;
         }
 
         $whereStr = implode(' AND ', $where);
@@ -37,6 +59,39 @@ class Transaction extends Model {
         ", $params);
     }
 
+// Méthode getTopServicesByUsage : services les plus utilisés.
+    public function getTopServicesByUsage(int $limit = 5): array {
+        return $this->query(
+            "
+            SELECT s.id_service, s.nom AS nom_service, s.categorie,
+                   COUNT(*) AS total_transactions,
+                   SUM(t.montant) AS total_montant
+            FROM transaction t
+            JOIN service s ON s.id_service = t.id_service
+            WHERE t.statut = 'VALIDEE'
+            GROUP BY s.id_service, s.nom, s.categorie
+            ORDER BY total_transactions DESC
+            LIMIT ?
+        ", [$limit]);
+    }
+
+// Méthode getTopServicesByMontant : services les plus lourds en montant.
+    public function getTopServicesByMontant(int $limit = 5): array {
+        return $this->query(
+            "
+            SELECT s.id_service, s.nom AS nom_service, s.categorie,
+                   COUNT(*) AS total_transactions,
+                   SUM(t.montant) AS total_montant
+            FROM transaction t
+            JOIN service s ON s.id_service = t.id_service
+            WHERE t.statut = 'VALIDEE'
+            GROUP BY s.id_service, s.nom, s.categorie
+            ORDER BY total_montant DESC
+            LIMIT ?
+        ", [$limit]);
+    }
+
+// Méthode getWithDetails : gère getWithDetails. 
     public function getWithDetails(int $id): ?array {
         return $this->queryOne("
             SELECT t.*,
@@ -52,6 +107,7 @@ class Transaction extends Model {
         ", [$id]);
     }
 
+// Méthode getTotalJour : gère getTotalJour. 
     public function getTotalJour(): float {
         $result = $this->queryOne("
             SELECT COALESCE(SUM(montant), 0) AS total
@@ -61,6 +117,7 @@ class Transaction extends Model {
         return (float) ($result['total'] ?? 0);
     }
 
+// Méthode getNbJour : gère getNbJour. 
     public function getNbJour(): int {
         $result = $this->queryOne("
             SELECT COUNT(*) AS nb

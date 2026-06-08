@@ -1,22 +1,34 @@
 <?php
+// ============================================================
+//  app/controllers/CommissionController.php — Fichier commenté
+// ============================================================
+
+// Classe CommissionController : implémente la logique métier pour cette partie de l’application
 class CommissionController extends Controller {
 
+// Méthode index : gère index. 
     public function index(): void {
         Auth::requireRole(['COMPTABLE', 'DG']);
         require_once APP_PATH . '/models/CommissionTransaction.php';
+        require_once APP_PATH . '/models/Service.php';
 
-        $commModel = new CommissionTransaction();
+        $commModel    = new CommissionTransaction();
+        $serviceModel = new Service();
         $mois  = (int)($this->get('mois')  ?: date('m'));
         $annee = (int)($this->get('annee') ?: date('Y'));
+        $idService = (int)$this->get('service');
 
         $this->render('commissions/index', [
-            'benefices'  => $commModel->getBeneficesParService($mois, $annee),
-            'total'      => $commModel->getTotalCommissions($mois, $annee),
+            'benefices'  => $commModel->getBeneficesParService($mois, $annee, $idService),
+            'total'      => $commModel->getTotalCommissions($mois, $annee, $idService),
+            'services'   => $serviceModel->getAllActifs(),
             'mois'       => $mois,
             'annee'      => $annee,
+            'filtres'    => ['id_service' => $idService],
         ], 'Commissions et bénéfices');
     }
 
+// Méthode config : gère config. 
     public function config(): void {
         Auth::requireRole(['COMPTABLE', 'DG']);
         require_once APP_PATH . '/models/CommissionConfig.php';
@@ -40,6 +52,7 @@ class CommissionController extends Controller {
         ], 'Paramétrage des commissions');
     }
 
+// Méthode saveConfig : gère saveConfig. 
     public function saveConfig(): void {
         Auth::requireRole(['COMPTABLE', 'DG']);
         $this->verifyCsrf();

@@ -1,6 +1,12 @@
 <?php
+// ============================================================
+//  app/controllers/UtilisateurController.php — Fichier commenté
+// ============================================================
+
+// Classe UtilisateurController : implémente la logique métier pour cette partie de l’application
 class UtilisateurController extends Controller {
 
+// Méthode index : gère index. 
     public function index(): void {
         Auth::requireRole(['DG']);
         require_once APP_PATH . '/models/Utilisateur.php';
@@ -10,6 +16,7 @@ class UtilisateurController extends Controller {
         ], 'Gestion des utilisateurs');
     }
 
+// Méthode create : gère create. 
     public function create(): void {
         Auth::requireRole(['DG']);
         $this->render('dashboard/index', [
@@ -17,6 +24,7 @@ class UtilisateurController extends Controller {
         ], 'Ajouter un utilisateur');
     }
 
+// Méthode store : gère store. 
     public function store(): void {
         Auth::requireRole(['DG']);
         $this->verifyCsrf();
@@ -50,6 +58,7 @@ class UtilisateurController extends Controller {
         $this->redirect('utilisateurs');
     }
 
+// Méthode edit : gère edit. 
     public function edit(string $id): void {
         Auth::requireRole(['DG']);
         $userModel = new Utilisateur();
@@ -59,6 +68,7 @@ class UtilisateurController extends Controller {
         ], 'Modifier utilisateur');
     }
 
+// Méthode update : gère update. 
     public function update(string $id): void {
         Auth::requireRole(['DG']);
         $this->verifyCsrf();

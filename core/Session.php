@@ -6,6 +6,21 @@ class Session {
 
     public static function start(): void {
         if (session_status() === PHP_SESSION_NONE) {
+            $secure = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+            // Déduire le domaine sans le port pour éviter les problèmes de cookie
+            $host = $_SERVER['HTTP_HOST'] ?? ($_SERVER['SERVER_NAME'] ?? '');
+            if (strpos($host, ':') !== false) {
+                $host = explode(':', $host, 2)[0];
+            }
+            $domain = $host ?: '';
+            session_set_cookie_params([
+                'lifetime' => 0,
+                'path'     => '/',
+                'domain'   => $domain,
+                'secure'   => $secure,
+                'httponly' => true,
+                'samesite' => 'Lax',
+            ]);
             session_start();
         }
     }
@@ -27,8 +42,26 @@ class Session {
     }
 
     public static function destroy(): void {
-        session_destroy();
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            $params = session_get_cookie_params();
+            setcookie(
+                session_name(),
+                '',
+                time() - 42000,
+                $params['path'] ?? '/',
+                $params['domain'] ?? '',
+                $params['secure'] ?? false,
+                $params['httponly'] ?? true
+            );
+            session_destroy();
+        }
         $_SESSION = [];
+    }
+
+    public static function regenerate(): void {
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_regenerate_id(true);
+        }
     }
 
     // Messages flash (affichés une seule fois)

@@ -7,6 +7,7 @@ class Database {
     private static ?Database $instance = null;
     private PDO $pdo;
 
+// Méthode __construct : gère   construct. 
     private function __construct() {
         require_once ROOT_PATH . '/config/database.php';
         $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
@@ -17,7 +18,11 @@ class Database {
                 PDO::ATTR_EMULATE_PREPARES   => false,
             ]);
         } catch (PDOException $e) {
-            die(json_encode(['error' => 'Connexion BDD échouée : ' . $e->getMessage()]));
+            $message = 'Connexion à la base de données impossible.';
+            if (Config::get('APP_ENV', 'production') === 'development') {
+                $message = 'Connexion BDD échouée : ' . $e->getMessage();
+            }
+            throw new RuntimeException($message, 0, $e);
         }
     }
 
@@ -28,6 +33,7 @@ class Database {
         return self::$instance;
     }
 
+// Méthode getConnection : gère getConnection. 
     public function getConnection(): PDO {
         return $this->pdo;
     }

@@ -1,12 +1,19 @@
 <?php
+// ============================================================
+//  app/models/Utilisateur.php — Fichier commenté
+// ============================================================
+
+// Classe Utilisateur : implémente la logique métier pour cette partie de l’application
 class Utilisateur extends Model {
     protected string $table      = 'utilisateur';
     protected string $primaryKey = 'id_user';
 
+// Méthode findByEmail : gère findByEmail. 
     public function findByEmail(string $email): ?array {
         return $this->queryOne("SELECT * FROM utilisateur WHERE email = ?", [$email]);
     }
 
+// Méthode existsByEmail : gère existsByEmail. 
     public function existsByEmail(string $email, int $excludeId = 0): bool {
         if ($excludeId > 0) {
             $user = $this->queryOne("SELECT id_user FROM utilisateur WHERE email = ? AND id_user != ?", [$email, $excludeId]);
@@ -16,6 +23,7 @@ class Utilisateur extends Model {
         return !empty($user);
     }
 
+// Méthode authenticate : gère authenticate. 
     public function authenticate(string $email, string $password): ?array {
         $user = $this->findByEmail($email);
         if ($user && password_verify($password, $user['mot_de_passe']) && $user['actif']) {
@@ -24,6 +32,7 @@ class Utilisateur extends Model {
         return null;
     }
 
+// Méthode createUser : gère createUser. 
     public function createUser(array $data): int {
         $data['mot_de_passe'] = password_hash($data['mot_de_passe'], PASSWORD_BCRYPT);
         return $this->create($data);

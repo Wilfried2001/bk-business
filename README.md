@@ -13,14 +13,17 @@
    cd bk_business
    composer install
    ```
-3. Importer `database/bk_business.sql` dans MySQL via phpMyAdmin ou :
+3. Copier `config/.env.example` en `.env` et adapter les valeurs :
+   ```bash
+   copy .env.example .env
+   ```
+4. Importer `database/bk_business.sql` dans MySQL via phpMyAdmin ou :
    ```bash
    mysql -u root -p < database/bk_business.sql
    ```
-4. Modifier `config/database.php` avec vos identifiants MySQL
 5. Accéder à l'application :
    ```bash
-   php -S localhost:8000 -t public
+   composer serve
    ```
 
 ## Contrôle d'accès

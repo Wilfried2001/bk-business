@@ -145,7 +145,7 @@
                         </div>
                     </div>
                     <div class="col-12 commission-tranche-section"
-                        style="display: <?= $config['mode_calcul'] === 'TRANCHE' ? 'block' : 'none' ?>;">
+                        style="display: <?= e($config['mode_calcul'] === 'TRANCHE' ? 'block' : 'none') ?>;">
                         <div class="card border-secondary-subtle mb-3">
                             <div class="card-body py-3">
                                 <div class="d-flex justify-content-between align-items-center mb-3">

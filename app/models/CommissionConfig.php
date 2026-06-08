@@ -1,8 +1,14 @@
 <?php
+// ============================================================
+//  app/models/CommissionConfig.php — Fichier commenté
+// ============================================================
+
+// Classe CommissionConfig : implémente la logique métier pour cette partie de l’application
 class CommissionConfig extends Model {
     protected string $table      = 'commission_config';
     protected string $primaryKey = 'id_config';
 
+// Méthode getConfig : gère getConfig. 
     public function getConfig(int $idService, int $idType): ?array {
         return $this->queryOne("
             SELECT * FROM commission_config
@@ -10,6 +16,7 @@ class CommissionConfig extends Model {
         ", [$idService, $idType]);
     }
 
+// Méthode calculer : gère calculer. 
     public function calculer(array $config, float $montant): float {
         return match($config['mode_calcul']) {
             'TAUX'    => round($montant * (float)$config['valeur'] / 100, 2),
@@ -19,6 +26,7 @@ class CommissionConfig extends Model {
         };
     }
 
+// Méthode calculerParTranche : gère calculerParTranche. 
     private function calculerParTranche(int $idConfig, float $montant): float {
         $stmt = Database::getInstance()->getConnection()->prepare("
             SELECT montant_fixe FROM commission_tranche
@@ -32,6 +40,7 @@ class CommissionConfig extends Model {
         return $tranche ? (float)$tranche['montant_fixe'] : 0;
     }
 
+// Méthode getAllWithDetails : gère getAllWithDetails. 
     public function getAllWithDetails(): array {
         return $this->query("
             SELECT cc.*, s.nom AS nom_service, to2.libelle AS libelle_type
@@ -42,6 +51,7 @@ class CommissionConfig extends Model {
         ");
     }
 
+// Méthode getTranchesByConfig : gère getTranchesByConfig. 
     public function getTranchesByConfig(int $idConfig): array {
         return $this->query(
             "SELECT montant_min, montant_max, montant_fixe
@@ -52,10 +62,12 @@ class CommissionConfig extends Model {
         );
     }
 
+// Méthode clearTranches : gère clearTranches. 
     public function clearTranches(int $idConfig): bool {
         return $this->execute("DELETE FROM commission_tranche WHERE id_config = ?", [$idConfig]);
     }
 
+// Méthode saveTranches : gère saveTranches. 
     public function saveTranches(int $idConfig, array $tranches): bool {
         $this->beginTransaction();
         try {

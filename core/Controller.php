@@ -6,10 +6,10 @@ abstract class Controller {
 
     // Charger une vue avec des données
     protected function view(string $view, array $data = []): void {
-        extract($data); // rend les variables disponibles dans la vue
+        extract($data, EXTR_SKIP); // évite d’écraser les variables locales existantes
         $viewPath = VIEWS_PATH . '/' . str_replace('.', '/', $view) . '.php';
         if (!file_exists($viewPath)) {
-            die("Vue introuvable : {$viewPath}");
+            throw new RuntimeException("Vue introuvable : {$viewPath}");
         }
         require_once $viewPath;
     }
@@ -18,19 +18,51 @@ abstract class Controller {
     protected function render(string $view, array $data = [], string $title = ''): void {
         $data['pageTitle'] = $title ?: APP_NAME;
         $data['view']      = $view;
-        extract($data);
+        extract($data, EXTR_SKIP);
         require_once VIEWS_PATH . '/layouts/header.php';
         require_once VIEWS_PATH . '/layouts/navbar.php';
         require_once VIEWS_PATH . '/layouts/sidebar.php';
         $viewPath = VIEWS_PATH . '/' . str_replace('.', '/', $view) . '.php';
+        if (!file_exists($viewPath)) {
+            throw new RuntimeException("Vue introuvable : {$viewPath}");
+        }
         require_once $viewPath;
         require_once VIEWS_PATH . '/layouts/footer.php';
     }
 
     // Redirection
     protected function redirect(string $path): void {
+        $path = $this->normalizeRedirectPath($path);
         header('Location: ' . BASE_URL . '/' . ltrim($path, '/'));
         exit;
+    }
+
+    // Vérifier qu'une redirection reste interne à l'application
+    protected function isInternalPath(string $path): bool {
+        return $this->normalizeRedirectPath($path) !== '';
+    }
+
+    private function normalizeRedirectPath(string $path): string {
+        $path = trim($path);
+        if ($path === '') {
+            return '';
+        }
+
+        $parts = parse_url($path);
+        if ($parts === false || isset($parts['scheme']) || isset($parts['host'])) {
+            return '';
+        }
+
+        $path = $parts['path'] ?? '';
+        $path = preg_replace('#\.{2}[/\\]#', '', $path);
+        $path = preg_replace('#[^a-zA-Z0-9/_\-\.\?=&]#', '', $path);
+
+        $query = '';
+        if (!empty($parts['query'])) {
+            $query = '?' . preg_replace('#[^a-zA-Z0-9/_\-\.\?=&]#', '', $parts['query']);
+        }
+
+        return $path . $query;
     }
 
     // Réponse JSON (pour les appels AJAX)
@@ -65,10 +97,12 @@ abstract class Controller {
         }
     }
 
+// Méthode validate : gère validate. 
     protected function validate(array $data, array $rules): array {
         return Validator::validate($data, $rules);
     }
 
+// Méthode abortValidation : gère abortValidation. 
     protected function abortValidation(array $errors, string $redirectPath): void {
         if (!empty($errors)) {
             Session::flash('error', implode(' ', $errors));

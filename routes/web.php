@@ -16,13 +16,25 @@ $router->get('/',             'Dashboard', 'index', ['AGENT', 'SUPERVISEUR', 'CO
 $router->get( '/transactions',           'Transaction', 'index', ['AGENT', 'SUPERVISEUR', 'DG']);
 $router->get( '/transactions/create',    'Transaction', 'create', ['AGENT', 'SUPERVISEUR', 'DG']);
 $router->post('/transactions/store',     'Transaction', 'store', ['AGENT', 'SUPERVISEUR', 'DG']);
-$router->get( '/transactions/:id',       'Transaction', 'show', ['AGENT', 'SUPERVISEUR', 'DG']);
-$router->post('/transactions/:id/cancel','Transaction', 'cancel', ['AGENT', 'SUPERVISEUR', 'DG']);
+$router->get( '/transactions/:id',         'Transaction', 'show', ['AGENT', 'SUPERVISEUR', 'DG']);
+$router->get( '/transactions/:id/edit',    'Transaction', 'edit', ['SUPERVISEUR', 'DG']);
+$router->post('/transactions/:id/update',  'Transaction', 'update', ['SUPERVISEUR', 'DG']);
+$router->post('/transactions/:id/cancel',  'Transaction', 'cancel', ['AGENT', 'SUPERVISEUR', 'DG']);
 
 // ── Stocks ───────────────────────────────────────────────────
 $router->get('/stocks',           'Stock', 'index', ['SUPERVISEUR', 'COMPTABLE', 'DG']);
 $router->get('/stocks/:id',       'Stock', 'show', ['SUPERVISEUR', 'COMPTABLE', 'DG']);
 $router->post('/stocks/:id/seuil','Stock', 'saveThreshold', ['SUPERVISEUR', 'COMPTABLE', 'DG']);
+// Mettre à jour le montant actuel d'un solde (initial ou ajustement)
+$router->post('/stocks/:id/solde','Stock', 'updateSolde', ['SUPERVISEUR', 'COMPTABLE', 'DG']);
+
+// Définir les stocks initiaux pour tous les services (formulaire global)
+$router->get('/stocks/define',  'Stock', 'defineForm', ['SUPERVISEUR', 'COMPTABLE', 'DG']);
+$router->post('/stocks/define', 'Stock', 'defineStore', ['SUPERVISEUR', 'COMPTABLE', 'DG']);
+
+// Gérer les seuils pour tous les services (formulaire global)
+$router->get('/stocks/seuils/all',  'Stock', 'seuilsForm', ['SUPERVISEUR', 'COMPTABLE', 'DG']);
+$router->post('/stocks/seuils/save', 'Stock', 'seuilsSave', ['SUPERVISEUR', 'COMPTABLE', 'DG']);
 
 // ── Alertes ──────────────────────────────────────────────────
 $router->get( '/alertes',              'Alerte', 'index', ['SUPERVISEUR', 'DG']);

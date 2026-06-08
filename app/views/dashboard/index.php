@@ -165,9 +165,9 @@
                     <td><span class="truncate" title="<?= e($user['email']) ?>" data-bs-toggle="tooltip"><?= e($user['email']) ?></span></td>
                     <td><?= roleBadge($user['role']) ?></td>
                     <td>
-                        <span class="badge bg-<?= $user['actif'] ? 'success' : 'secondary' ?>">
-                            <i class="bi bi-<?= $user['actif'] ? 'check-circle' : 'x-circle' ?>"></i>
-                            <?= $user['actif'] ? 'Actif' : 'Inactif' ?>
+                        <span class="badge bg-<?= e($user['actif'] ? 'success' : 'secondary') ?>">
+                            <i class="bi bi-<?= e($user['actif'] ? 'check-circle' : 'x-circle') ?>"></i>
+                            <?= e($user['actif'] ? 'Actif' : 'Inactif') ?>
                         </span>
                     </td>
                     <td class="d-none d-md-table-cell"><small class="text-muted"><span class="truncate" title="<?= e(formatDate($user['date_creation'])) ?>" data-bs-toggle="tooltip"><?= e(formatDate($user['date_creation'])) ?></span></small></td>
@@ -279,6 +279,132 @@
             </div>
         </div>
     </div>
+    <div class="col-12">
+        <div class="row gy-3 mb-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header">
+                        <i class="bi bi-bar-chart-line"></i> Services les plus utilisés
+                    </div>
+                    <div class="card-body">
+                        <?php if (empty($topServicesUsage)): ?>
+                            <p class="mb-0">Aucune donnée d'utilisation disponible.</p>
+                        <?php else: ?>
+                            <div class="table-responsive">
+                                <table class="table table-borderless mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Service</th>
+                                            <th class="text-end">Transactions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($topServicesUsage as $service): ?>
+                                            <tr>
+                                                <td><?= e($service['nom_service']) ?></td>
+                                                <td class="text-end"><?= e($service['total_transactions']) ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header">
+                        <i class="bi bi-currency-dollar"></i> Services les plus valorisés
+                    </div>
+                    <div class="card-body">
+                        <?php if (empty($topServicesMontant)): ?>
+                            <p class="mb-0">Aucune donnée de montant disponible.</p>
+                        <?php else: ?>
+                            <div class="table-responsive">
+                                <table class="table table-borderless mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Service</th>
+                                            <th class="text-end">Montant</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($topServicesMontant as $service): ?>
+                                            <tr>
+                                                <td><?= e($service['nom_service']) ?></td>
+                                                <td class="text-end"><?= e(formatMontant((float)$service['total_montant'])) ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header">
+                        <i class="bi bi-bell"></i> Services avec alertes actives
+                    </div>
+                    <div class="card-body">
+                        <?php if (empty($topAlertServices)): ?>
+                            <p class="mb-0">Aucun service en alerte pour le moment.</p>
+                        <?php else: ?>
+                            <div class="table-responsive">
+                                <table class="table table-borderless mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Service</th>
+                                            <th class="text-end">Alertes actives</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($topAlertServices as $service): ?>
+                                            <tr>
+                                                <td><?= e($service['nom_service']) ?></td>
+                                                <td class="text-end"><?= e($service['active_alerts']) ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+            <?php if (!empty($topProfitServices)): ?>
+                <div class="col-lg-3 col-md-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header">
+                            <i class="bi bi-graph-up-arrow"></i> Services les plus rentables
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-borderless mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Service</th>
+                                            <th class="text-end">Commission</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($topProfitServices as $service): ?>
+                                            <tr>
+                                                <td><?= e($service['nom_service']) ?></td>
+                                                <td class="text-end"><?= e(formatMontant((float)$service['total_commission'])) ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
     <!-- Soldes des services -->
     <div class="col-lg-6">
         <div class="card shadow-sm mb-4">
@@ -307,10 +433,10 @@
                                     <?= $solde['valeur_seuil'] !== null ? e(formatMontant((float)$solde['valeur_seuil'])) : '—' ?>
                                 </td>
                                 <td>
-                                    <span class="badge bg-<?= $solde['en_alerte'] ? 'danger' : 'success' ?>">
+                                    <span class="badge bg-<?= e($solde['en_alerte'] ? 'danger' : 'success') ?>">
                                         <i
-                                            class="bi bi-<?= $solde['en_alerte'] ? 'exclamation-circle' : 'check-circle' ?>"></i>
-                                        <?= $solde['en_alerte'] ? 'Alerte' : 'Normal' ?>
+                                            class="bi bi-<?= e($solde['en_alerte'] ? 'exclamation-circle' : 'check-circle') ?>"></i>
+                                        <?= e($solde['en_alerte'] ? 'Alerte' : 'Normal') ?>
                                     </span>
                                 </td>
                                     <td class="text-end">

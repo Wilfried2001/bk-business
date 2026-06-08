@@ -1,4 +1,9 @@
 <?php
+// ============================================================
+//  app/validation/Validator.php — Fichier commenté
+// ============================================================
+
+// Classe Validator : implémente la logique métier pour cette partie de l’application
 class Validator {
 
     public static function validate(array $data, array $rules): array {
