@@ -66,7 +66,7 @@
                 }
             ?>
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+                <table class="table table-hover align-middle mb-0 table-mobile-details">
                     <thead>
                         <tr>
                             <th>Service</th>

@@ -139,17 +139,7 @@ class StockController extends Controller {
             $typeModel = new TypeOperation();
 
             // Trouver ou créer le type 'AJUSTEMENT'
-            $adjustType = $typeModel->queryOne("SELECT * FROM type_operation WHERE libelle = ?", ['AJUSTEMENT']);
-            if (!$adjustType) {
-                $idType = $typeModel->create([
-                    'libelle' => 'AJUSTEMENT',
-                    'description' => 'Transaction d\'ajustement manuel de solde',
-                    'impact_float' => 0,
-                    'impact_caisse' => 0,
-                ]);
-            } else {
-                $idType = (int) $adjustType['id_type'];
-            }
+            $idType = $typeModel->getOrCreateAdjustmentType();
 
             $nature = $soldeApres > $soldeAvant ? 'CREDIT' : 'DEBIT';
 
@@ -247,17 +237,7 @@ class StockController extends Controller {
             $diff = round(abs($soldeApres - $soldeAvant), 2);
             if ($diff > 0) {
                 // Trouver ou créer type AJUSTEMENT
-                $adjustType = $typeModel->queryOne("SELECT * FROM type_operation WHERE libelle = ?", ['AJUSTEMENT']);
-                if (!$adjustType) {
-                    $idType = $typeModel->create([
-                        'libelle' => 'AJUSTEMENT',
-                        'description' => 'Transaction d\'ajustement manuel de solde',
-                        'impact_float' => 0,
-                        'impact_caisse' => 0,
-                    ]);
-                } else {
-                    $idType = (int) $adjustType['id_type'];
-                }
+                $idType = $typeModel->getOrCreateAdjustmentType();
 
                 $nature = $soldeApres > $soldeAvant ? 'CREDIT' : 'DEBIT';
 

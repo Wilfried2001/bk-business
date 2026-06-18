@@ -49,6 +49,16 @@ $router->post('/commissions/config',   'Commission', 'saveConfig', ['COMPTABLE',
 $router->get('/rapports',              'Rapport', 'index', ['SUPERVISEUR', 'COMPTABLE', 'DG']);
 $router->get('/rapports/export',       'Rapport', 'export', ['SUPERVISEUR', 'COMPTABLE', 'DG']);
 
+// ── Agent IA ─────────────────────────────────────────────────
+$router->get( '/agent',           'AgentIA', 'index', ['AGENT', 'SUPERVISEUR', 'COMPTABLE', 'DG']);
+$router->post('/api/agent/ask',   'AgentIA', 'ask', ['AGENT', 'SUPERVISEUR', 'COMPTABLE', 'DG']);
+$router->get( '/api/agent/rapport', 'AgentIA', 'rapport', ['SUPERVISEUR', 'COMPTABLE', 'DG']);
+
+// ── Tests (développement uniquement) ─────────────────────────
+if (Config::get('APP_ENV', 'production') !== 'production') {
+    $router->get('/test-agent', 'TestAgent', 'run');
+}
+
 // ── Utilisateurs (DG uniquement) ─────────────────────────────
 $router->get( '/utilisateurs',          'Utilisateur', 'index', ['DG']);
 $router->get( '/utilisateurs/create',   'Utilisateur', 'create', ['DG']);

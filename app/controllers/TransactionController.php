@@ -55,17 +55,38 @@ class TransactionController extends Controller {
         Auth::requireRole(['AGENT', 'SUPERVISEUR', 'DG']);
         $this->verifyCsrf();
 
-        $idService = (int) $this->post('id_service');
-        $idType    = (int) $this->post('id_type');
-        $montant   = (float) $this->post('montant');
+        $idService = $this->post('id_service');
+        $idType    = $this->post('id_type');
+        $montant   = $this->post('montant');
         $reference = $this->post('reference', '');
         $note      = $this->post('note', '');
 
-        // Validation
-        if (!$idService || !$idType || $montant <= 0) {
-            Session::flash('error', 'Données invalides. Veuillez vérifier le formulaire.');
+        $errors = $this->validate([
+            'id_service' => $idService,
+            'id_type'    => $idType,
+            'montant'    => $montant,
+            'reference'  => $reference,
+            'note'       => $note,
+        ], [
+            'id_service' => 'required|integer|positive',
+            'id_type'    => 'required|integer|positive',
+            'montant'    => 'required|numeric|positive',
+            'reference'  => 'max_length:255',
+            'note'       => 'max_length:1000',
+        ]);
+
+        if ($idService <= 0 || $idType <= 0 || (is_numeric($montant) && (float)$montant <= 0)) {
+            $errors[] = 'Le montant doit être supérieur à zéro et le service/type doivent être sélectionnés.';
+        }
+
+        if (!empty($errors)) {
+            Session::flash('error', implode(' ', $errors));
             $this->redirect('transactions/create');
         }
+
+        $idService = (int) $idService;
+        $idType    = (int) $idType;
+        $montant   = (float) str_replace(',', '.', $montant);
 
         // Chargement des modèles
         require_once APP_PATH . '/models/Transaction.php';

@@ -64,7 +64,9 @@ class Config {
     }
 }
 
-// Méthode env : gère env. 
-function env(string $key, mixed $default = null): mixed {
-    return Config::get($key, $default);
+// Méthode env : gère env.
+if (!function_exists('env')) {
+    function env(string $key, mixed $default = null): mixed {
+        return Config::get($key, $default);
+    }
 }

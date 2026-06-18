@@ -42,7 +42,17 @@ class Transaction extends Model {
             $params[] = $search;
         }
 
+        if (!empty($filtres['exclude_adjustments'])) {
+            $where[] = "to2.libelle != '" . TypeOperation::ADJUSTMENT_LABEL . "'";
+        }
+
         $whereStr = implode(' AND ', $where);
+
+        $limitClause = '';
+        if (!empty($filtres['limit']) && is_numeric($filtres['limit']) && (int)$filtres['limit'] > 0) {
+            $limitClause = ' LIMIT ?';
+            $params[] = (int)$filtres['limit'];
+        }
 
         return $this->query("
             SELECT t.*,
@@ -55,7 +65,7 @@ class Transaction extends Model {
             JOIN type_operation to2 ON to2.id_type  = t.id_type
             JOIN utilisateur    u   ON u.id_user    = t.id_user
             WHERE {$whereStr}
-            ORDER BY t.date_heure DESC
+            ORDER BY t.date_heure DESC" . $limitClause . "
         ", $params);
     }
 
@@ -68,7 +78,9 @@ class Transaction extends Model {
                    SUM(t.montant) AS total_montant
             FROM transaction t
             JOIN service s ON s.id_service = t.id_service
+            JOIN type_operation to2 ON to2.id_type = t.id_type
             WHERE t.statut = 'VALIDEE'
+              AND to2.libelle != 'AJUSTEMENT'
             GROUP BY s.id_service, s.nom, s.categorie
             ORDER BY total_transactions DESC
             LIMIT ?
@@ -84,7 +96,9 @@ class Transaction extends Model {
                    SUM(t.montant) AS total_montant
             FROM transaction t
             JOIN service s ON s.id_service = t.id_service
+            JOIN type_operation to2 ON to2.id_type = t.id_type
             WHERE t.statut = 'VALIDEE'
+              AND to2.libelle != 'AJUSTEMENT'
             GROUP BY s.id_service, s.nom, s.categorie
             ORDER BY total_montant DESC
             LIMIT ?
@@ -110,9 +124,12 @@ class Transaction extends Model {
 // Méthode getTotalJour : gère getTotalJour. 
     public function getTotalJour(): float {
         $result = $this->queryOne("
-            SELECT COALESCE(SUM(montant), 0) AS total
-            FROM transaction
-            WHERE DATE(date_heure) = CURDATE() AND statut = 'VALIDEE'
+            SELECT COALESCE(SUM(t.montant), 0) AS total
+            FROM transaction t
+            JOIN type_operation to2 ON to2.id_type = t.id_type
+            WHERE DATE(t.date_heure) = CURDATE()
+              AND t.statut = 'VALIDEE'
+              AND to2.libelle != 'AJUSTEMENT'
         ");
         return (float) ($result['total'] ?? 0);
     }
@@ -121,8 +138,11 @@ class Transaction extends Model {
     public function getNbJour(): int {
         $result = $this->queryOne("
             SELECT COUNT(*) AS nb
-            FROM transaction
-            WHERE DATE(date_heure) = CURDATE() AND statut = 'VALIDEE'
+            FROM transaction t
+            JOIN type_operation to2 ON to2.id_type = t.id_type
+            WHERE DATE(t.date_heure) = CURDATE()
+              AND t.statut = 'VALIDEE'
+              AND to2.libelle != 'AJUSTEMENT'
         ");
         return (int) ($result['nb'] ?? 0);
     }

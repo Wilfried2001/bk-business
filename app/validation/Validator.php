@@ -62,6 +62,20 @@ class Validator {
             return null;
         }
 
+        if ($rule === 'min') {
+            if (!self::isEmpty($value) && is_numeric($value) && (float)$value < (float)$parameter) {
+                return "Le champ {$label} doit être supérieur ou égal à {$parameter}.";
+            }
+            return null;
+        }
+
+        if ($rule === 'max') {
+            if (!self::isEmpty($value) && is_numeric($value) && (float)$value > (float)$parameter) {
+                return "Le champ {$label} doit être inférieur ou égal à {$parameter}.";
+            }
+            return null;
+        }
+
         if ($rule === 'positive') {
             if (!self::isEmpty($value) && is_numeric($value) && (float)$value < 0) {
                 return "Le champ {$label} doit être positif.";

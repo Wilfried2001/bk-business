@@ -22,9 +22,10 @@ class RapportController extends Controller {
 
         $this->render('rapports/index', [
             'transactions' => $txModel->getAllWithDetails([
-                'date_debut'  => "{$annee}-{$mois}-01",
-                'date_fin'    => date('Y-m-t', mktime(0,0,0,$mois,1,$annee)),
-                'id_service'  => $idService,
+                'date_debut'        => "{$annee}-{$mois}-01",
+                'date_fin'          => date('Y-m-t', mktime(0,0,0,$mois,1,$annee)),
+                'id_service'        => $idService,
+                'exclude_adjustments' => true,
             ]),
             'benefices'   => Auth::hasRole(['COMPTABLE','DG'])
                             ? $commModel->getBeneficesParService($mois, $annee, $idService)
@@ -46,9 +47,10 @@ class RapportController extends Controller {
         $annee   = (int)($this->get('annee') ?: date('Y'));
 
         $transactions = $txModel->getAllWithDetails([
-            'date_debut' => "{$annee}-{$mois}-01",
-            'date_fin'   => date('Y-m-t', mktime(0,0,0,$mois,1,$annee)),
-            'id_service' => (int)$this->get('service'),
+            'date_debut'        => "{$annee}-{$mois}-01",
+            'date_fin'          => date('Y-m-t', mktime(0,0,0,$mois,1,$annee)),
+            'id_service'        => (int)$this->get('service'),
+            'exclude_adjustments' => true,
         ]);
 
         header('Content-Type: text/csv; charset=utf-8');

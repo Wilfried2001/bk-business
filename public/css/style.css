@@ -566,6 +566,70 @@ body, .main-content {
     overflow-x: hidden;
 }
 
+/* Chat interface styles */
+.chat-container {
+    min-height: 420px;
+    background: #ffffff;
+    border: 1px solid #e1e7ef;
+    border-radius: 0.85rem;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+    display: flex;
+    flex-direction: column;
+}
+
+#chat-messages {
+    min-height: 320px;
+    max-height: 380px;
+    overflow-y: auto;
+}
+
+.chat-message {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    animation: slideIn 0.25s ease-in-out;
+    line-height: 1.6;
+}
+
+.chat-message.user {
+    background-color: rgba(13, 71, 161, 0.08);
+    border-left: 4px solid var(--primary-color);
+    text-align: right;
+}
+
+.chat-message.ai {
+    background-color: #f5f7fb;
+    border-left: 4px solid #6c757d;
+    text-align: left;
+}
+
+.chat-message.error {
+    background-color: rgba(211, 47, 47, 0.12);
+    border-left: 4px solid var(--danger-color);
+    color: #842029;
+}
+
+.mode-btn {
+    min-width: 120px;
+    white-space: nowrap;
+}
+
+.mode-btn.active,
+.mode-btn:hover {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    border-color: transparent;
+}
+
+.quick-btn {
+    min-width: 120px;
+    margin-bottom: 0.4rem;
+}
+
+.quick-btn:hover {
+    background: rgba(13, 71, 161, 0.08);
+}
+
 /* Truncate utility for table cells */
 .truncate {
     display: inline-block;

@@ -92,9 +92,21 @@ abstract class Controller {
     protected function verifyCsrf(): void {
         $token = $this->post('csrf_token');
         if (!$token || $token !== Session::get('csrf_token')) {
+            if ($this->wantsJson()) {
+                $this->json(['success' => false, 'error' => 'Jeton CSRF invalide. Veuillez réessayer.'], 403);
+            }
             Session::flash('error', 'Jeton CSRF invalide. Veuillez réessayer.');
             $this->redirect('dashboard');
         }
+    }
+
+    // Détecte si la requête attend une réponse JSON
+    protected function wantsJson(): bool {
+        $accept = $_SERVER['HTTP_ACCEPT'] ?? '';
+        $xhr = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+        $uri = $_SERVER['REQUEST_URI'] ?? '';
+        $path = parse_url($uri, PHP_URL_PATH) ?: '';
+        return $xhr || stripos($accept, 'application/json') !== false || str_starts_with($path, '/api/');
     }
 
 // Méthode validate : gère validate. 

@@ -46,6 +46,12 @@ class Auth {
     // Rediriger si non connecté
     public static function requireAuth(): void {
         if (!self::check()) {
+            if (self::wantsJson()) {
+                http_response_code(401);
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'error' => 'Non authentifié']);
+                exit;
+            }
             header('Location: ' . BASE_URL . '/auth/login');
             exit;
         }
@@ -55,8 +61,33 @@ class Auth {
     public static function requireRole(array $roles): void {
         self::requireAuth();
         if (!self::hasRole($roles)) {
+            if (self::wantsJson()) {
+                http_response_code(403);
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'error' => 'Accès refusé']);
+                exit;
+            }
             header('Location: ' . BASE_URL . '/dashboard?error=access_denied');
             exit;
         }
+    }
+
+    // Détecte si la requête attend une réponse JSON (API / AJAX)
+    private static function wantsJson(): bool {
+        $accept = $_SERVER['HTTP_ACCEPT'] ?? '';
+        $xhr = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+        $uri = $_SERVER['REQUEST_URI'] ?? '';
+        $path = parse_url($uri, PHP_URL_PATH) ?: '';
+        $isApiPath = str_starts_with($path, '/api/');
+        return $xhr || stripos($accept, 'application/json') !== false || $isApiPath;
+    }
+
+    // Fournit les informations minimales de l'utilisateur connecté
+    public static function user(): array {
+        return [
+            'id' => self::id(),
+            'nom' => self::nom(),
+            'role' => self::role()
+        ];
     }
 }

@@ -11,6 +11,13 @@
         </button>
         <div class="collapse navbar-collapse" id="mainNav">
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                <?php if (Auth::hasRole(['AGENT', 'SUPERVISEUR', 'COMPTABLE', 'DG'])): ?>
+                    <li class="nav-item me-2">
+                        <a class="btn btn-outline-light" href="<?= url('agent') ?>">
+                            <i class="bi bi-robot"></i> Agent IA
+                        </a>
+                    </li>
+                <?php endif; ?>
                 <?php if (Auth::check()): ?>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">

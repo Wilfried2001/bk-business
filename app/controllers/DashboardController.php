@@ -21,12 +21,15 @@ class DashboardController extends Controller {
         $commModel    = new CommissionTransaction();
 
         $data = [
-            'nbTransactionsJour'  => $txModel->getNbJour(),
-            'totalMontantJour'    => $txModel->getTotalJour(),
-            'nbAlertesActives'    => $alerteModel->compterActives(),
-            'alertesActives'      => $alerteModel->getActives(),
-            'soldes'              => $soldeModel->getAllAvecSeuils(),
-            'dernièresTransactions' => $txModel->getAllWithDetails(['limit' => 10]),
+            'nbTransactionsJour'   => $txModel->getNbJour(),
+            'totalMontantJour'     => $txModel->getTotalJour(),
+            'nbAlertesActives'     => $alerteModel->compterActives(),
+            'alertesActives'       => $alerteModel->getActives(),
+            'soldes'               => $soldeModel->getAllAvecSeuils(),
+            'dernièresTransactions' => $txModel->getAllWithDetails([
+                'limit' => 10,
+                'exclude_adjustments' => true,
+            ]),
         ];
 
         // Données commission uniquement pour Comptable et DG
@@ -42,9 +45,12 @@ class DashboardController extends Controller {
 
         // Données graphiques : transactions des 7 derniers jours
         $rows = $txModel->query(
-            "SELECT DATE(date_heure) AS day, COUNT(*) AS cnt
-             FROM transaction
-             WHERE DATE(date_heure) >= DATE_SUB(CURDATE(), INTERVAL 6 DAY) AND statut = 'VALIDEE'
+            "SELECT DATE(t.date_heure) AS day, COUNT(*) AS cnt
+             FROM transaction t
+             JOIN type_operation to2 ON to2.id_type = t.id_type
+             WHERE DATE(t.date_heure) >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
+               AND t.statut = 'VALIDEE'
+               AND to2.libelle != 'AJUSTEMENT'
              GROUP BY day
              ORDER BY day ASC"
         );

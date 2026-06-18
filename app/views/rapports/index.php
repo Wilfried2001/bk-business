@@ -84,7 +84,6 @@
                             <td><span class="truncate" title="<?= e(formatMontant((float)$tx['montant'])) ?>" data-bs-toggle="tooltip"><?= e(formatMontant((float)$tx['montant'])) ?></span></td>
                             <td class="d-none d-md-table-cell"><span class="truncate" title="<?= e($tx['nom_agent']) ?>" data-bs-toggle="tooltip"><?= e($tx['nom_agent']) ?></span></td>
                             <td><span class="truncate" title="<?= e($tx['statut']) ?>" data-bs-toggle="tooltip"><?= e($tx['statut']) ?></span></td>
-                            <td></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
