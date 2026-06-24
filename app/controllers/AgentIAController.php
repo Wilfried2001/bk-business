@@ -175,7 +175,7 @@ class AgentIAController extends Controller {
                 COUNT(*) as nb_par_service
             FROM transaction t
             JOIN service s ON t.id_service = s.id_service
-            WHERE DATE(t.date_heure) = CURDATE()
+            WHERE DATE(t.created_at) = CURDATE()
             AND t.statut = 'VALIDEE'
             GROUP BY t.id_service, s.nom
             ORDER BY COUNT(*) DESC
@@ -211,8 +211,8 @@ class AgentIAController extends Controller {
             FROM commission_transaction ct
             JOIN transaction t ON ct.id_transaction = t.id_transaction
             JOIN service s ON t.id_service = s.id_service
-            WHERE YEAR(t.date_heure) = YEAR(CURDATE())
-            AND MONTH(t.date_heure) = MONTH(CURDATE())
+            WHERE YEAR(t.created_at) = YEAR(CURDATE())
+            AND MONTH(t.created_at) = MONTH(CURDATE())
             AND t.statut = 'VALIDEE'
             GROUP BY t.id_service, s.nom
             ORDER BY SUM(ct.montant_commission) DESC
@@ -266,14 +266,14 @@ class AgentIAController extends Controller {
     private function getHistorique30j(): array {
         $query = "
             SELECT 
-                DATE(t.date_heure) as date_jour,
+                DATE(t.created_at) as date_jour,
                 COUNT(*) as nb_transactions,
                 SUM(t.montant) as volume_jour
             FROM transaction t
-            WHERE t.date_heure >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+            WHERE t.created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
             AND t.statut = 'VALIDEE'
-            GROUP BY DATE(t.date_heure)
-            ORDER BY DATE(t.date_heure) DESC
+            GROUP BY DATE(t.created_at)
+            ORDER BY DATE(t.created_at) DESC
         ";
 
         $stmt = $this->db->prepare($query);
@@ -296,7 +296,7 @@ class AgentIAController extends Controller {
                 AVG(t.montant) AS moyenne_transaction
             FROM transaction t
             JOIN service s ON t.id_service = s.id_service
-            WHERE DATE(t.date_heure) = CURDATE()
+            WHERE DATE(t.created_at) = CURDATE()
               AND t.statut = 'VALIDEE'
             GROUP BY t.id_service, s.nom
         ";
@@ -314,15 +314,15 @@ class AgentIAController extends Controller {
             FROM (
                 SELECT
                     t.id_service,
-                    DATE(t.date_heure) AS jour,
+                    DATE(t.created_at) AS jour,
                     COUNT(*) AS nb_transactions,
                     SUM(t.montant) AS volume_jour,
                     AVG(t.montant) AS moyenne_transaction
                 FROM transaction t
-                WHERE t.date_heure >= DATE_SUB(CURDATE(), INTERVAL 31 DAY)
-                  AND t.date_heure < CURDATE()
+                WHERE t.created_at >= DATE_SUB(CURDATE(), INTERVAL 31 DAY)
+                  AND t.created_at < CURDATE()
                   AND t.statut = 'VALIDEE'
-                GROUP BY t.id_service, DATE(t.date_heure)
+                GROUP BY t.id_service, DATE(t.created_at)
             ) daily
             JOIN service s ON daily.id_service = s.id_service
             GROUP BY daily.id_service, s.nom
@@ -389,12 +389,12 @@ class AgentIAController extends Controller {
         $queryTrend = "
             SELECT
                 s.nom AS service,
-                SUM(CASE WHEN t.date_heure >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN t.montant ELSE 0 END) AS volume_7j,
-                SUM(CASE WHEN DATE(t.date_heure) >= DATE_SUB(CURDATE(), INTERVAL 14 DAY)
-                    AND DATE(t.date_heure) < DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN t.montant ELSE 0 END) AS volume_precedent_7j
+                SUM(CASE WHEN t.created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN t.montant ELSE 0 END) AS volume_7j,
+                SUM(CASE WHEN DATE(t.created_at) >= DATE_SUB(CURDATE(), INTERVAL 14 DAY)
+                    AND DATE(t.created_at) < DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN t.montant ELSE 0 END) AS volume_precedent_7j
             FROM transaction t
             JOIN service s ON t.id_service = s.id_service
-            WHERE t.date_heure >= DATE_SUB(CURDATE(), INTERVAL 14 DAY)
+            WHERE t.created_at >= DATE_SUB(CURDATE(), INTERVAL 14 DAY)
               AND t.statut = 'VALIDEE'
             GROUP BY s.nom
         ";

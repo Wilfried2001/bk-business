@@ -18,11 +18,11 @@ class Transaction extends Model {
             $params[] = $filtres['id_service'];
         }
         if (!empty($filtres['date_debut'])) {
-            $where[]  = 'DATE(t.date_heure) >= ?';
+            $where[]  = 'DATE(t.created_at) >= ?';
             $params[] = $filtres['date_debut'];
         }
         if (!empty($filtres['date_fin'])) {
-            $where[]  = 'DATE(t.date_heure) <= ?';
+            $where[]  = 'DATE(t.created_at) <= ?';
             $params[] = $filtres['date_fin'];
         }
         if (!empty($filtres['id_type'])) {
@@ -55,20 +55,19 @@ class Transaction extends Model {
         }
 
         return $this->query("
-            SELECT t.*,
+            SELECT t.*, t.created_at AS date_heure,
                    s.nom          AS nom_service,
                    to2.libelle    AS libelle_type,
                    to2.impact_float, to2.impact_caisse,
-                   u.nom          AS nom_agent,\
-                   a.nom          AS nom_agence\
-            FROM transaction t\
-            JOIN service        s   ON s.id_service = t.id_service\
-            JOIN type_operation to2 ON to2.id_type  = t.id_type\
-            JOIN utilisateur    u   ON u.id_user    = t.id_user\
-            LEFT JOIN agence    a   ON a.id_agence  = t.id_agence\
+                   u.nom          AS nom_agent,
+                   a.nom          AS nom_agence
+            FROM transaction t
+            JOIN service        s   ON s.id_service = t.id_service
+            JOIN type_operation to2 ON to2.id_type  = t.id_type
+            JOIN utilisateur    u   ON u.id_user    = t.id_user
+            LEFT JOIN agence    a   ON a.id_agence  = t.id_agence
             WHERE {$whereStr}
-            ORDER BY t.date_heure DESC" . $limitClause . "
-        ", $params);
+            ORDER BY t.created_at DESC" . $limitClause . "\n        ", $params);
     }
 
 // Méthode getTopServicesByUsage : services les plus utilisés.
@@ -110,17 +109,17 @@ class Transaction extends Model {
 // Méthode getWithDetails : gère getWithDetails. 
     public function getWithDetails(int $id): ?array {
         return $this->queryOne("
-            SELECT t.*,
+            SELECT t.*, t.created_at AS date_heure,
                    s.nom       AS nom_service, s.categorie,
                    to2.libelle AS libelle_type,
                    to2.impact_float, to2.impact_caisse,
-                   u.nom       AS nom_agent,\
-                   a.nom       AS nom_agence\
-            FROM transaction t\
-            JOIN service        s   ON s.id_service = t.id_service\
-            JOIN type_operation to2 ON to2.id_type  = t.id_type\
-            JOIN utilisateur    u   ON u.id_user    = t.id_user\
-            LEFT JOIN agence    a   ON a.id_agence  = t.id_agence\
+                   u.nom       AS nom_agent,
+                   a.nom       AS nom_agence
+            FROM transaction t
+            JOIN service        s   ON s.id_service = t.id_service
+            JOIN type_operation to2 ON to2.id_type  = t.id_type
+            JOIN utilisateur    u   ON u.id_user    = t.id_user
+            LEFT JOIN agence    a   ON a.id_agence  = t.id_agence
             WHERE t.id_transaction = ?
         ", [$id]);
     }
@@ -131,7 +130,7 @@ class Transaction extends Model {
             SELECT COALESCE(SUM(t.montant), 0) AS total
             FROM transaction t
             JOIN type_operation to2 ON to2.id_type = t.id_type
-            WHERE DATE(t.date_heure) = CURDATE()
+            WHERE DATE(t.created_at) = CURDATE()
               AND t.statut = 'VALIDEE'
               AND to2.libelle != 'AJUSTEMENT'
         ");
@@ -144,7 +143,7 @@ class Transaction extends Model {
             SELECT COUNT(*) AS nb
             FROM transaction t
             JOIN type_operation to2 ON to2.id_type = t.id_type
-            WHERE DATE(t.date_heure) = CURDATE()
+            WHERE DATE(t.created_at) = CURDATE()
               AND t.statut = 'VALIDEE'
               AND to2.libelle != 'AJUSTEMENT'
         ");

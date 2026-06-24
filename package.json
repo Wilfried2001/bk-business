@@ -1,0 +1,14 @@
+{
+  "name": "bk-business",
+  "version": "1.0.0",
+  "private": true,
+  "devDependencies": {
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.36",
+    "tailwindcss": "^3.4.4"
+  },
+  "scripts": {
+    "build:css": "npx tailwindcss -i ./src/css/style.css -o ./public/css/style.css --minify",
+    "watch:css": "npx tailwindcss -i ./src/css/style.css -o ./public/css/style.css --watch"
+  }
+}

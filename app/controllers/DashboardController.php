@@ -45,10 +45,10 @@ class DashboardController extends Controller {
 
         // Données graphiques : transactions des 7 derniers jours
         $rows = $txModel->query(
-            "SELECT DATE(t.date_heure) AS day, COUNT(*) AS cnt
+            "SELECT DATE(t.created_at) AS day, COUNT(*) AS cnt
              FROM transaction t
              JOIN type_operation to2 ON to2.id_type = t.id_type
-             WHERE DATE(t.date_heure) >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
+             WHERE DATE(t.created_at) >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
                AND t.statut = 'VALIDEE'
                AND to2.libelle != 'AJUSTEMENT'
              GROUP BY day

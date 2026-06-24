@@ -5,7 +5,8 @@
 --  Date    : 2025
 -- ============================================================
 
-CREATE DATABASE IF NOT EXISTS bk_business
+DROP DATABASE IF EXISTS bk_business;
+CREATE DATABASE bk_business
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
 
@@ -294,8 +295,8 @@ SELECT
     SUM(CASE WHEN ct.est_benefice = 0
              THEN ct.montant_commission
              ELSE 0 END)                AS total_perte,
-    MONTH(t.date_heure)                 AS mois,
-    YEAR(t.date_heure)                  AS annee
+    MONTH(t.created_at)                 AS mois,
+    YEAR(t.created_at)                  AS annee
 FROM commission_transaction ct
 JOIN transaction t      ON ct.id_transaction = t.id_transaction
 JOIN service s          ON t.id_service      = s.id_service
@@ -303,20 +304,27 @@ GROUP BY
     s.id_service,
     s.nom,
     s.categorie,
-    YEAR(t.date_heure),
-    MONTH(t.date_heure);
+    YEAR(t.created_at),
+    MONTH(t.created_at);
 
 
 -- ============================================================
 -- DONNÉES DE RÉFÉRENCE
 -- ============================================================
 
--- Utilisateur admin par défaut (mot de passe : Admin@2025)
+-- Comptes de connexion pour chaque rôle (mot de passe: password)
 INSERT INTO utilisateur (nom, email, mot_de_passe, role) VALUES
-('Directeur General',  'dg@bkbusiness.cm',          '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'DG'),
-('Superviseur',        'superviseur@bkbusiness.cm',  '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'SUPERVISEUR'),
-('Comptable',          'comptable@bkbusiness.cm',    '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'COMPTABLE'),
-('Agent Principal',    'agent@bkbusiness.cm',        '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'AGENT');
+('Directeur General',  'dg@bkbusiness.cm',          '$2y$10$AcrfpWNGoq8VWJofkC1k/eJmuzwnx12cWgp9LgSys9MjoqhmioMfq', 'DG'),
+('Superviseur',        'superviseur@bkbusiness.cm',  '$2y$10$AcrfpWNGoq8VWJofkC1k/eJmuzwnx12cWgp9LgSys9MjoqhmioMfq', 'SUPERVISEUR'),
+('Comptable',          'comptable@bkbusiness.cm',    '$2y$10$AcrfpWNGoq8VWJofkC1k/eJmuzwnx12cWgp9LgSys9MjoqhmioMfq', 'COMPTABLE'),
+('Agent Principal',    'agent@bkbusiness.cm',        '$2y$10$AcrfpWNGoq8VWJofkC1k/eJmuzwnx12cWgp9LgSys9MjoqhmioMfq', 'AGENT');
+
+-- Comptes de test supplémentaires pour les 4 rôles (mot de passe: password)
+INSERT INTO utilisateur (nom, email, mot_de_passe, role) VALUES
+('Directeur Test',     'dg.test@bkbusiness.cm',      '$2y$10$AcrfpWNGoq8VWJofkC1k/eJmuzwnx12cWgp9LgSys9MjoqhmioMfq', 'DG'),
+('Superviseur Test',   'superviseur.test@bkbusiness.cm', '$2y$10$AcrfpWNGoq8VWJofkC1k/eJmuzwnx12cWgp9LgSys9MjoqhmioMfq', 'SUPERVISEUR'),
+('Comptable Test',     'comptable.test@bkbusiness.cm', '$2y$10$AcrfpWNGoq8VWJofkC1k/eJmuzwnx12cWgp9LgSys9MjoqhmioMfq', 'COMPTABLE'),
+('Agent Test',         'agent.test@bkbusiness.cm',    '$2y$10$AcrfpWNGoq8VWJofkC1k/eJmuzwnx12cWgp9LgSys9MjoqhmioMfq', 'AGENT');
 
 -- Services
 INSERT INTO service (nom, description, categorie) VALUES
@@ -463,7 +471,7 @@ UPDATE solde_service SET montant_actuel = 45000.00 WHERE id_service = 11 AND typ
 -- INDEX pour optimiser les requêtes fréquentes
 -- ============================================================
 CREATE INDEX idx_transaction_service   ON transaction(id_service);
-CREATE INDEX idx_transaction_date      ON transaction(date_heure);
+CREATE INDEX idx_transaction_date      ON transaction(created_at);
 CREATE INDEX idx_transaction_user      ON transaction(id_user);
 CREATE INDEX idx_mouvement_transaction ON mouvement_solde(id_transaction);
 CREATE INDEX idx_mouvement_solde       ON mouvement_solde(id_solde);
