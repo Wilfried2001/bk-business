@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,7 +9,10 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="<?= url('css/style.css') ?>">
     <style>
-        html { scroll-behavior: smooth; }
+    html {
+        scroll-behavior: smooth;
+    }
     </style>
 </head>
+
 <body class="fade-in">

@@ -59,11 +59,13 @@ class Transaction extends Model {
                    s.nom          AS nom_service,
                    to2.libelle    AS libelle_type,
                    to2.impact_float, to2.impact_caisse,
-                   u.nom          AS nom_agent
-            FROM transaction t
-            JOIN service        s   ON s.id_service = t.id_service
-            JOIN type_operation to2 ON to2.id_type  = t.id_type
-            JOIN utilisateur    u   ON u.id_user    = t.id_user
+                   u.nom          AS nom_agent,\
+                   a.nom          AS nom_agence\
+            FROM transaction t\
+            JOIN service        s   ON s.id_service = t.id_service\
+            JOIN type_operation to2 ON to2.id_type  = t.id_type\
+            JOIN utilisateur    u   ON u.id_user    = t.id_user\
+            LEFT JOIN agence    a   ON a.id_agence  = t.id_agence\
             WHERE {$whereStr}
             ORDER BY t.date_heure DESC" . $limitClause . "
         ", $params);
@@ -112,11 +114,13 @@ class Transaction extends Model {
                    s.nom       AS nom_service, s.categorie,
                    to2.libelle AS libelle_type,
                    to2.impact_float, to2.impact_caisse,
-                   u.nom       AS nom_agent
-            FROM transaction t
-            JOIN service        s   ON s.id_service = t.id_service
-            JOIN type_operation to2 ON to2.id_type  = t.id_type
-            JOIN utilisateur    u   ON u.id_user    = t.id_user
+                   u.nom       AS nom_agent,\
+                   a.nom       AS nom_agence\
+            FROM transaction t\
+            JOIN service        s   ON s.id_service = t.id_service\
+            JOIN type_operation to2 ON to2.id_type  = t.id_type\
+            JOIN utilisateur    u   ON u.id_user    = t.id_user\
+            LEFT JOIN agence    a   ON a.id_agence  = t.id_agence\
             WHERE t.id_transaction = ?
         ", [$id]);
     }

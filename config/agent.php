@@ -20,7 +20,7 @@ return [
     // Paramètres Groq (si utilisé)
     'groq_api_key' => Config::get('GROQ_API_KEY', ''),
     'groq_api_url' => Config::get('GROQ_API_URL', 'https://api.groq.com/openai/v1/chat/completions'),
-    'groq_model' => Config::get('GROQ_MODEL', 'groq-1'),
+    'groq_model' => Config::get('GROQ_MODEL', 'llama-3.1-8b-instant'),
 
     // Rôles et accès
     'roles' => [

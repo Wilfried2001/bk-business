@@ -3,7 +3,8 @@
 //  app/models/ApiGroq.php — Classe pour appeler Groq (adaptateur)
 // ============================================================
 
-class ApiGroq {
+class ApiGroq
+{
 
     private string $apiKey;
     private string $apiUrl;
@@ -11,12 +12,16 @@ class ApiGroq {
     private int $maxTokens;
     private int $timeout;
 
-    public function __construct() {
+    public function __construct()
+    {
         $config = require ROOT_PATH . '/config/agent.php';
 
         $this->apiKey = trim((string) Config::get('GROQ_API_KEY', $config['groq_api_key'] ?? ''));
         $this->apiUrl = trim((string) Config::get('GROQ_API_URL', $config['groq_api_url'] ?? ''));
-        $this->model = $config['groq_model'] ?? 'groq-1';
+        $this->model =  trim((string) Config::get(
+            'GROQ_MODEL',
+            $config['groq_model'] ?? 'llama-3.1-8b-instant'
+        ));
         $this->maxTokens = (int)($config['max_tokens'] ?? 1024);
         $this->timeout = (int)($config['request_timeout'] ?? 15);
 
@@ -29,24 +34,26 @@ class ApiGroq {
         }
     }
 
-    public function call(string $prompt, ?array $options = null): string {
+    public function call(string $prompt, ?array $options = null): string
+    {
         $options = $options ?? [];
 
         $payload = [
             'model' => $options['model'] ?? $this->model,
-             'messages' => [
-        [
-            'role' => 'user',
-            'content' => $prompt
-        ]
-    ],
+            'messages' => [
+                [
+                    'role' => 'user',
+                    'content' => $prompt
+                ]
+            ],
             'max_tokens' => $options['max_tokens'] ?? $this->maxTokens,
         ];
 
         return $this->makeRequest($payload);
     }
 
-    private function makeRequest(array $payload): string {
+    private function makeRequest(array $payload): string
+    {
         if (empty($this->apiUrl) || !filter_var($this->apiUrl, FILTER_VALIDATE_URL)) {
             throw new RuntimeException('URL API Groq invalide ou manquante: ' . $this->apiUrl);
         }
@@ -114,7 +121,8 @@ class ApiGroq {
         return json_encode($data, JSON_UNESCAPED_UNICODE);
     }
 
-    public static function testConnection(): bool {
+    public static function testConnection(): bool
+    {
         try {
             $api = new self();
             $response = $api->call('Réponds simplement: OK');
@@ -124,4 +132,3 @@ class ApiGroq {
         }
     }
 }
-?>

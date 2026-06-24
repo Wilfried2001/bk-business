@@ -79,6 +79,7 @@ class AgentIAController extends Controller {
 
         $data = [
             'user' => $user,
+            'entreprise' => $this->getEntrepriseProfil(),
             'soldes' => $this->getSoldes(),
             'alertes' => $this->getAlertes(),
             'transactions_jour' => $this->getTransactionsAujourdhui(),
@@ -230,6 +231,33 @@ class AgentIAController extends Controller {
             'total_mois' => $total,
             'par_service' => $resultats
         ];
+    }
+
+    /**
+     * Profil de l'entreprise et liste des services / agences actives
+     */
+    private function getEntrepriseProfil(): array {
+        return [
+            'nom' => APP_NAME,
+            'description' => 'BK Business est une agence de services financiers et de transfert d’argent basée à Yaoundé, Cameroun.',
+            'base_url' => BASE_URL,
+            'services' => $this->getActiveServices(),
+            'agences' => $this->getActiveAgences(),
+        ];
+    }
+
+    private function getActiveServices(): array {
+        $query = "SELECT nom, description, categorie FROM service WHERE actif = 1 ORDER BY nom";
+        $stmt = $this->db->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    private function getActiveAgences(): array {
+        $query = "SELECT nom, code, adresse, ville FROM agence WHERE actif = 1 ORDER BY nom";
+        $stmt = $this->db->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll();
     }
 
     /**
@@ -403,6 +431,7 @@ class AgentIAController extends Controller {
      */
     private function construirPrompt(string $question, string $mode, array $donnees): string {
         $user = $donnees['user'];
+        $entreprise = $donnees['entreprise'];
         $soldes = $donnees['soldes'];
         $alertes = $donnees['alertes'];
         $tx_jour = $donnees['transactions_jour'];
@@ -487,6 +516,23 @@ class AgentIAController extends Controller {
             default => ''
         };
 
+        $services_list = empty($entreprise['services']) ? 'Aucun service actif trouvé.' : implode(', ', array_map(function($s) {
+            return $s['nom'];
+        }, $entreprise['services']));
+
+        $agences_list = empty($entreprise['agences']) ? 'Aucune agence active trouvée.' : implode(', ', array_map(function($a) {
+            return trim($a['nom'] . ($a['ville'] ? ' (' . $a['ville'] . ')' : ''));
+        }, $entreprise['agences']));
+
+        $entreprise_text = sprintf(
+            "ENTREPRISE : %s\nDESCRIPTION : %s\nBASE_URL : %s\nSERVICES ACTIFS : %s\nAGENCES ACTIVES : %s\n",
+            $entreprise['nom'], 
+            $entreprise['description'],
+            $entreprise['base_url'],
+            $services_list,
+            $agences_list
+        );
+
         $modeInstructions = match($mode) {
             'chat' => 'Mode CHAT : Réponse très courte, simple et amicale. Ne donne pas d\'informations supplémentaires si l\'utilisateur ne les demande pas.',
             'analyse' => 'Mode ANALYSE : Détecte les patterns, anomalies. Format: ✅ Points positifs / ⚠️ Points d\'attention / 💡 Recommandations',
@@ -514,6 +560,14 @@ $roleInfo
 MODE DE FONCTIONNEMENT ACTUEL :
 $modeInstructions
 
+=== PROFIL ENTREPRISE ===
+$entreprise_text
+
+=== PROFIL UTILISATEUR ===
+- Nom : {$user['nom']}
+- Email : {$user['email']}
+- Rôle : {$user['role']}
+
 === DONNÉES EN TEMPS RÉEL ===
 
 $soldes_text
@@ -529,22 +583,21 @@ $anomalies_text
 $tendances_text
 
 === QUESTION DE L'UTILISATEUR ===
-
 $question
 
 === CONSIGNES ===
-1. Utilise UNIQUEMENT les données fournies ci-dessus
-2. Ne jamais inventer de chiffres
-3. Si une donnée manque : "Cette information n'est pas disponible"
-4. Formate les nombres avec espaces : 125 000 FCFA
-5. Respecte le mode de fonctionnement indiqué
-6. Réponse professionnelle mais accessible
+1. Utilise UNIQUEMENT les données fournies ci-dessus.
+2. Ne jamais inventer de chiffres.
+3. Si une donnée manque : "Cette information n'est pas disponible".
+4. Formate les nombres avec des espaces : 125 000 FCFA.
+5. Respecte le mode de fonctionnement indiqué.
+6. Réponse professionnelle mais accessible.
 
 RÉPONDS MAINTENANT :
 - Si la question est une salutation ou une demande générale, réponds en 1 phrase simple.
 - Ne fournis pas de détails sur les alertes ou les soldes tant que l'utilisateur ne le demande pas explicitement.
 - Si l'utilisateur demande des informations sur les alertes, donne un résumé concis, puis propose une action claire.
-    $guichet_text
+$guichet_text
 PROMPT;
 
         return $prompt;

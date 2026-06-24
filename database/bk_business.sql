@@ -62,31 +62,64 @@ CREATE TABLE type_operation (
 
 
 -- ============================================================
--- 4. TABLE : transaction
+-- 4. TABLE : agence
 -- ============================================================
-CREATE TABLE transaction (
-    id_transaction  BIGINT          NOT NULL AUTO_INCREMENT,
-    id_service      BIGINT          NOT NULL,
-    id_type         BIGINT          NOT NULL,
-    id_user         BIGINT          NOT NULL,
-    montant         DECIMAL(15,2)   NOT NULL,
-    reference       VARCHAR(100)    NULL,
-    date_heure      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    statut          ENUM(
-                        'EN_COURS',
-                        'VALIDEE',
-                        'ANNULEE'
-                    )               NOT NULL DEFAULT 'VALIDEE',
-    note            TEXT            NULL,
-    PRIMARY KEY (id_transaction),
-    CONSTRAINT fk_tx_service    FOREIGN KEY (id_service) REFERENCES service(id_service),
-    CONSTRAINT fk_tx_type       FOREIGN KEY (id_type)    REFERENCES type_operation(id_type),
-    CONSTRAINT fk_tx_user       FOREIGN KEY (id_user)    REFERENCES utilisateur(id_user)
+CREATE TABLE agence (
+    id_agence      BIGINT          NOT NULL AUTO_INCREMENT,
+    nom            VARCHAR(150)    NOT NULL,
+    code           VARCHAR(50)     NULL,
+    adresse        VARCHAR(255)    NULL,
+    ville          VARCHAR(100)    NULL,
+    actif          TINYINT(1)      NOT NULL DEFAULT 1,
+    PRIMARY KEY (id_agence)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
 -- ============================================================
--- 5. TABLE : solde_service
+-- 5. TABLE : transaction
+-- ============================================================
+CREATE TABLE transaction (
+    id_transaction      BIGINT          NOT NULL AUTO_INCREMENT,
+    id_service          BIGINT          NOT NULL,
+    id_type             BIGINT          NOT NULL,
+    id_user             BIGINT          NOT NULL,
+    agence              VARCHAR(150)    NULL,
+    id_agence           BIGINT          NULL,
+    reference           VARCHAR(100)    NULL,
+    nom_expediteur      VARCHAR(255)    NULL,
+    nom_benefis         VARCHAR(255)    NULL,
+    code_operation      VARCHAR(100)    NULL,
+    nature_operation    VARCHAR(100)    NULL,
+    produit             VARCHAR(100)    NULL,
+    type_de_operation   VARCHAR(100)    NULL,
+    id_produit          BIGINT          NULL,
+    montant             DECIMAL(15,2)   NOT NULL,
+    created_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    motif_transaction   VARCHAR(255)    NULL,
+    nature_transaction  VARCHAR(100)    NULL,
+    type_mouvement      VARCHAR(50)     NULL,
+    affecte_stock       TINYINT(1)      NOT NULL DEFAULT 0,
+    affecte_caisse      TINYINT(1)      NOT NULL DEFAULT 0,
+    notes               TEXT            NULL,
+    statut              ENUM(
+                            'EN_COURS',
+                            'VALIDEE',
+                            'ANNULEE'
+                        )               NOT NULL DEFAULT 'VALIDEE',
+    updated_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    commission          DECIMAL(15,2)   NOT NULL DEFAULT 0.00,
+    frais_operation     DECIMAL(15,2)   NOT NULL DEFAULT 0.00,
+    note                TEXT            NULL,
+    PRIMARY KEY (id_transaction),
+    CONSTRAINT fk_tx_service    FOREIGN KEY (id_service)  REFERENCES service(id_service),
+    CONSTRAINT fk_tx_type       FOREIGN KEY (id_type)     REFERENCES type_operation(id_type),
+    CONSTRAINT fk_tx_user       FOREIGN KEY (id_user)     REFERENCES utilisateur(id_user),
+    CONSTRAINT fk_tx_agence     FOREIGN KEY (id_agence)   REFERENCES agence(id_agence)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+-- ============================================================
+-- 6. TABLE : solde_service
 --    Un service a exactement 2 soldes : FLOAT et CAISSE
 -- ============================================================
 CREATE TABLE solde_service (
@@ -346,6 +379,85 @@ INSERT INTO seuil_alerte (id_solde, valeur_seuil) VALUES
 (20, 30000.00),  -- ENEO CAISSE
 (21, 10000.00),  -- DHL FLOAT
 (22, 30000.00);  -- DHL CAISSE
+
+-- Agences fictives
+INSERT INTO agence (nom, code, adresse, ville) VALUES
+('Agence Centre',    'CTR', 'Rue du Commerce n°12', 'Yaoundé'),
+('Agence Marché',    'MKT', 'Avenue du Marché n°45', 'Douala'),
+('Agence Airport',   'AIR', 'Terminal 2, Route de l''Aéroport', 'Douala'),
+('Agence Downtown',  'DTN', 'Boulevard René II n°23', 'Yaoundé');
+
+-- Configuration de commission fictive
+INSERT INTO commission_config (id_service, id_type, nom, source, mode_calcul, valeur) VALUES
+(1, 1, 'Commission Depot Orange Money', 'OPERATEUR', 'TAUX', 1.50),
+(1, 2, 'Commission Retrait Orange Money', 'OPERATEUR', 'FIXE', 250.00),
+(2, 5, 'Commission Paiement MTN Money', 'CLIENT', 'TRANCHE', 0.00),
+(3, 3, 'Commission Envoi Ria', 'OPERATEUR', 'TAUX', 0.75),
+(9, 6, 'Commission Reabonnement Canal+', 'CLIENT', 'FIXE', 500.00),
+(11, 1, 'Commission Depot DHL', 'CLIENT', 'TAUX', 1.25);
+
+-- Tranches de commission pour MTN Money Paiement
+INSERT INTO commission_tranche (id_config, montant_min, montant_max, montant_fixe) VALUES
+((SELECT id_config FROM commission_config WHERE id_service = 2 AND id_type = 5 AND source = 'CLIENT'), 0.00, 20000.00, 150.00),
+((SELECT id_config FROM commission_config WHERE id_service = 2 AND id_type = 5 AND source = 'CLIENT'), 20000.01, 50000.00, 300.00),
+((SELECT id_config FROM commission_config WHERE id_service = 2 AND id_type = 5 AND source = 'CLIENT'), 50000.01, NULL, 500.00);
+
+-- Transactions fictives
+INSERT INTO transaction (id_service, id_type, id_user, agence, id_agence, reference, nom_expediteur, nom_benefis, code_operation, nature_operation, produit, type_de_operation, montant, motif_transaction, nature_transaction, type_mouvement, affecte_stock, affecte_caisse, notes, statut, commission, frais_operation, note) VALUES
+(1, 1, 4, 'Agence Centre', 1, 'OMD-2026-001', 'Franck Mbarga', 'Claire Ndongo', 'OMD001', 'Depot', 'Orange Money', 'Dépôt mobile', 120000.00, 'Dépôt espèces client', 'FINANCIER', 'ENTREE', 0, 1, 'Client a déposé de l''argent en agence', 'VALIDEE', 1800.00, 500.00, 'Commission opérateur'),
+(1, 2, 4, 'Agence Centre', 1, 'OMR-2026-002', 'Joseph Keng', 'Mireille Tchame', 'OMR002', 'Retrait', 'Orange Money', 'Retrait mobile', 35000.00, 'Retrait d''argent pour client', 'FINANCIER', 'SORTIE', 0, 1, 'Retrait réseau Orange', 'VALIDEE', 250.00, 300.00, 'Commission fixe'),
+(2, 5, 3, 'Agence Marché', 2, 'MTN-PAY-003', 'Sandra Mba', 'Ecole Sainte Marie', 'MTNP003', 'Paiement', 'MTN Money', 'Paiement facture', 25000.00, 'Paiement facture scolaire', 'FINANCIER', 'ENTREE', 0, 1, 'Paiement élève', 'VALIDEE', 300.00, 200.00, 'Commission tranche'),
+(3, 3, 4, 'Agence Marché', 2, 'RIA-ENVOI-004', 'Jean-Paul Etoundi', 'Antonio Silva', 'RIA004', 'Envoi', 'Ria', 'Transfert international', 180000.00, 'Envoi vers le Cameroun', 'FINANCIER', 'ENTREE', 0, 1, 'Transfert Ria vers Douala', 'VALIDEE', 1350.00, 600.00, 'Commission opérateur'),
+(3, 4, 4, 'Agence Marché', 2, 'RIA-RECP-005', 'Aicha Kotto', 'Samuel N.', 'RIA005', 'Reception', 'Ria', 'Reception international', 100000.00, 'Réception fonds international', 'FINANCIER', 'SORTIE', 0, 1, 'Reception de fonds', 'VALIDEE', 750.00, 400.00, 'Commission opérateur'),
+(9, 6, 4, 'Agence Airport', 3, 'CNL-2026-006', 'Monique Fokam', 'Canal+ Service', 'CNL006', 'Reabonnement', 'Canal+', 'Abonnement TV', 7000.00, 'Reabonnement bouquet Canal+', 'FINANCIER', 'ENTREE', 0, 1, 'Reabonnement client', 'VALIDEE', 500.00, 100.00, 'Commission fixe'),
+(10, 5, 3, 'Agence Airport', 3, 'ENEO-2026-007', 'Pierre Ngu', 'Société ENEO', 'ENEO007', 'Paiement', 'ENEO', 'Paiement facture', 20000.00, 'Paiement facture ENEO', 'FINANCIER', 'ENTREE', 0, 1, 'Paiement électricité', 'VALIDEE', 400.00, 150.00, 'Commission fixe'),
+(11, 1, 2, 'Agence Downtown', 4, 'DHL-DEP-008', 'Emmanuel T.', 'Client DHL', 'DHL008', 'Depot', 'DHL', 'Dépôt colis', 35000.00, 'Dépôt frais DHL', 'FINANCIER', 'ENTREE', 0, 1, 'Dépôt pour envoi colis', 'VALIDEE', 437.50, 250.00, 'Commission client');
+
+-- Mouvements de soldes liés aux transactions fictives
+INSERT INTO mouvement_solde (id_transaction, id_solde, nature, montant, solde_avant, solde_apres, motif) VALUES
+(1, 1, 'DEBIT', 120000.00, 150000.00, 30000.00, 'Retrait du float pour dépôt Orange Money'),
+(1, 2, 'CREDIT', 120000.00, 20000.00, 140000.00, 'Entrée de caisse pour dépôt Orange Money'),
+(2, 1, 'CREDIT', 35000.00, 30000.00, 65000.00, 'Augmentation du float suite au retrait'),
+(2, 2, 'DEBIT', 35000.00, 140000.00, 105000.00, 'Sortie de caisse suite au retrait'),
+(3, 3, 'DEBIT', 25000.00, 40000.00, 15000.00, 'Paiement MTN Money - sortie float'),
+(3, 4, 'CREDIT', 25000.00, 30000.00, 55000.00, 'Paiement MTN Money - entrée caisse'),
+(4, 6, 'CREDIT', 180000.00, 90000.00, 270000.00, 'Entrée caisse pour envoi Ria'),
+(5, 6, 'DEBIT', 100000.00, 270000.00, 170000.00, 'Sortie caisse pour réception Ria'),
+(6, 17, 'DEBIT', 7000.00, 15000.00, 8000.00, 'Sortie float pour reabonnement Canal+'),
+(6, 18, 'CREDIT', 7000.00, 25000.00, 32000.00, 'Entrée caisse Canal+ pour reabonnement'),
+(7, 19, 'DEBIT', 20000.00, 38000.00, 18000.00, 'Sortie float pour paiement ENEO'),
+(7, 20, 'CREDIT', 20000.00, 30000.00, 50000.00, 'Entrée caisse ENEO paiement'),
+(8, 21, 'DEBIT', 35000.00, 45000.00, 10000.00, 'Sortie float pour dépôt DHL'),
+(8, 22, 'CREDIT', 35000.00, 10000.00, 45000.00, 'Entrée caisse dépôt DHL');
+
+-- Commission de transactions fictives
+INSERT INTO commission_transaction (id_transaction, id_config, source, montant_commission, est_benefice) VALUES
+(1, 1, 'OPERATEUR', 1800.00, 1),
+(2, 2, 'OPERATEUR', 250.00, 1),
+(3, 3, 'CLIENT', 300.00, 0),
+(4, 4, 'OPERATEUR', 1350.00, 1),
+(5, 4, 'OPERATEUR', 750.00, 1),
+(6, 5, 'CLIENT', 500.00, 0),
+(7, 2, 'OPERATEUR', 400.00, 1),
+(8, 6, 'CLIENT', 437.50, 0);
+
+-- Alertes de solde fictives
+INSERT INTO alerte_solde (id_seuil, message, montant_au_moment, statut) VALUES
+(17, 'Solde FLOAT Canal+ inférieur au seuil de sécurité', 8000.00, 'ACTIVE');
+
+-- Mise à jour des soldes actuels après les transactions fictives
+UPDATE solde_service SET montant_actuel = 65000.00 WHERE id_service = 1 AND type_solde = 'FLOAT';
+UPDATE solde_service SET montant_actuel = 105000.00 WHERE id_service = 1 AND type_solde = 'CAISSE';
+UPDATE solde_service SET montant_actuel = 15000.00 WHERE id_service = 2 AND type_solde = 'FLOAT';
+UPDATE solde_service SET montant_actuel = 55000.00 WHERE id_service = 2 AND type_solde = 'CAISSE';
+UPDATE solde_service SET montant_actuel = 20000.00 WHERE id_service = 3 AND type_solde = 'FLOAT';
+UPDATE solde_service SET montant_actuel = 170000.00 WHERE id_service = 3 AND type_solde = 'CAISSE';
+UPDATE solde_service SET montant_actuel = 8000.00 WHERE id_service = 9 AND type_solde = 'FLOAT';
+UPDATE solde_service SET montant_actuel = 32000.00 WHERE id_service = 9 AND type_solde = 'CAISSE';
+UPDATE solde_service SET montant_actuel = 18000.00 WHERE id_service = 10 AND type_solde = 'FLOAT';
+UPDATE solde_service SET montant_actuel = 50000.00 WHERE id_service = 10 AND type_solde = 'CAISSE';
+UPDATE solde_service SET montant_actuel = 10000.00 WHERE id_service = 11 AND type_solde = 'FLOAT';
+UPDATE solde_service SET montant_actuel = 45000.00 WHERE id_service = 11 AND type_solde = 'CAISSE';
 
 -- ============================================================
 -- INDEX pour optimiser les requêtes fréquentes

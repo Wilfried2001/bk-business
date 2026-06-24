@@ -33,6 +33,8 @@
                     <dd class="col-sm-7"><?= e(formatMontant((float)$transaction['montant'])) ?></dd>
                     <dt class="col-sm-5">Agent</dt>
                     <dd class="col-sm-7"><?= e($transaction['nom_agent']) ?></dd>
+                    <dt class="col-sm-5">Agence</dt>
+                    <dd class="col-sm-7"><?= e($transaction['nom_agence'] ?? $transaction['agence'] ?? '-') ?></dd>
                     <dt class="col-sm-5">Date</dt>
                     <dd class="col-sm-7"><?= e(formatDate($transaction['date_heure'])) ?></dd>
                     <dt class="col-sm-5">Statut</dt>
