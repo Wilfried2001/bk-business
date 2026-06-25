@@ -62,7 +62,7 @@ class AgentIAController extends Controller {
                 'timestamp' => date('c'),
             ]);
 
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->json([
                 'success' => false,
                 'error'   => $e->getMessage(),

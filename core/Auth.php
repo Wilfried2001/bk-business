@@ -78,7 +78,7 @@ class Auth {
         $xhr = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
         $uri = $_SERVER['REQUEST_URI'] ?? '';
         $path = parse_url($uri, PHP_URL_PATH) ?: '';
-        $isApiPath = str_starts_with($path, '/api/');
+        $isApiPath = stripos($path, '/api/') !== false;
         return $xhr || stripos($accept, 'application/json') !== false || $isApiPath;
     }
 

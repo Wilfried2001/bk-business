@@ -1,66 +1,65 @@
-<div class="container-fluid">
-    <div class="row">
-        <aside class="col-lg-2 bg-white border-end sidebar py-4">
-            <div class="px-3 mb-4 d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-compass"></i> Navigation</h5>
-                <button class="btn btn-sm btn-outline-secondary d-lg-none close-sidebar" type="button"
+<div class="app-shell">
+        <aside class="app-sidebar py-4">
+            <div class="mb-4 flex items-center justify-between px-4">
+                <h5 class="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-primary"><i data-lucide="compass"></i> Navigation</h5>
+                <button class="app-btn app-btn-sm app-btn-secondary lg:hidden close-sidebar" type="button"
                     aria-label="Fermer le menu">
-                    <i class="bi bi-x-lg"></i>
+                    <i data-lucide="x"></i>
                 </button>
             </div>
-            <div class="list-group list-group-flush">
-                <a class="list-group-item list-group-item-action" href="<?= url('dashboard') ?>">
-                    <i class="bi bi-speedometer2"></i> Tableau de bord
+            <div>
+                <a class="app-nav-link" href="<?= url('dashboard') ?>">
+                    <i data-lucide="gauge"></i> Tableau de bord
                 </a>
                 <?php if (Auth::hasRole(['AGENT', 'SUPERVISEUR', 'COMPTABLE', 'DG'])): ?>
-                <a class="list-group-item list-group-item-action" href="<?= url('agent') ?>">
-                    <i class="bi bi-robot"></i> Agent IA
+                <a class="app-nav-link" href="<?= url('agent') ?>">
+                    <i data-lucide="bot"></i> Agent IA
                 </a>
                 <?php endif; ?>
                 <?php if (Auth::hasRole(['AGENT', 'SUPERVISEUR', 'DG'])): ?>
-                <a class="list-group-item list-group-item-action" href="<?= url('transactions') ?>">
-                    <i class="bi bi-arrow-left-right"></i> Transactions
+                <a class="app-nav-link" href="<?= url('transactions') ?>">
+                    <i data-lucide="arrow-left-right"></i> Transactions
                 </a>
                 <?php endif; ?>
                 <?php if (Auth::hasRole(['SUPERVISEUR', 'DG'])): ?>
-                <a class="list-group-item list-group-item-action" href="<?= url('stocks') ?>">
-                    <i class="bi bi-boxes"></i> Stocks
+                <a class="app-nav-link" href="<?= url('stocks') ?>">
+                    <i data-lucide="package"></i> Stocks
                 </a>
-                <a class="list-group-item list-group-item-action" href="<?= url('alertes') ?>">
-                    <i class="bi bi-exclamation-triangle"></i> Alertes
+                <a class="app-nav-link" href="<?= url('alertes') ?>">
+                    <i data-lucide="alert-triangle"></i> Alertes
                 </a>
                 <?php endif; ?>
                 <?php if (Auth::hasRole(['COMPTABLE', 'DG'])): ?>
-                <a class="list-group-item list-group-item-action" href="<?= url('commissions') ?>">
-                    <i class="bi bi-percent"></i> Commissions
+                <a class="app-nav-link" href="<?= url('commissions') ?>">
+                    <i data-lucide="percent"></i> Commissions
                 </a>
-                <a class="list-group-item list-group-item-action" href="<?= url('commissions/config') ?>">
-                    <i class="bi bi-gear"></i> Paramétrage commissions
+                <a class="app-nav-link" href="<?= url('commissions/config') ?>">
+                    <i data-lucide="settings"></i> Paramétrage commissions
                 </a>
                 <?php endif; ?>
                 <?php if (Auth::hasRole(['SUPERVISEUR', 'COMPTABLE', 'DG'])): ?>
-                <a class="list-group-item list-group-item-action" href="<?= url('rapports') ?>">
-                    <i class="bi bi-bar-chart"></i> Rapports
+                <a class="app-nav-link" href="<?= url('rapports') ?>">
+                    <i data-lucide="bar-chart"></i> Rapports
                 </a>
 
                 <?php endif; ?>
                 <?php if (Auth::hasRole(['DG'])): ?>
-                <a class="list-group-item list-group-item-action" href="<?= url('utilisateurs') ?>">
-                    <i class="bi bi-people"></i> Utilisateurs
+                <a class="app-nav-link" href="<?= url('utilisateurs') ?>">
+                    <i data-lucide="users"></i> Utilisateurs
                 </a>
                 <?php endif; ?>
             </div>
         </aside>
-        <main class="col-lg-10 main-content">
+        <main class="app-main">
             <?php if ($success = Session::getFlash('success')): ?>
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <div class="app-alert app-alert-success app-alert-dismissible" role="alert">
                 <?= e($success) ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+                <button type="button" class="app-close absolute right-3 top-3" data-dismiss="alert" aria-label="Fermer"></button>
             </div>
             <?php endif; ?>
             <?php if ($error = Session::getFlash('error')): ?>
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <div class="app-alert app-alert-danger app-alert-dismissible" role="alert">
                 <?= e($error) ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+                <button type="button" class="app-close absolute right-3 top-3" data-dismiss="alert" aria-label="Fermer"></button>
             </div>
             <?php endif; ?>

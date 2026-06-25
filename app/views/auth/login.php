@@ -34,24 +34,24 @@
     .form-group {
         margin-bottom: 1.5rem;
     }
-    .form-label {
+    .app-label {
         font-weight: 600;
         color: #333;
         margin-bottom: 0.6rem;
         display: block;
     }
-    .form-control {
+    .app-field {
         border: 2px solid #e0e0e0;
         border-radius: 0.5rem;
         padding: 0.9rem 1rem;
         font-size: 0.95rem;
         transition: all 0.3s ease;
     }
-    .form-control:focus {
+    .app-field:focus {
         border-color: #667eea;
         box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
     }
-    .btn-login {
+    .login-button {
         width: 100%;
         padding: 0.9rem;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -65,7 +65,7 @@
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
-    .btn-login:hover {
+    .login-button:hover {
         transform: translateY(-2px);
         box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
     }
@@ -84,25 +84,25 @@
         transform: translateY(-50%);
         color: #999;
     }
-    .icon-input .form-control {
+    .icon-input .app-field {
         padding-left: 2.5rem;
     }
 </style>
 
 <div class="login-container">
     <div class="login-header">
-        <h1><i class="bi bi-briefcase-fill"></i> <?= e(APP_NAME) ?></h1>
+        <h1><i data-lucide="briefcase"></i> <?= e(APP_NAME) ?></h1>
         <p>Gestion d'entreprise intégrée</p>
     </div>
     <div class="login-form">
         <?php if ($error = Session::getFlash('error')): ?>
-            <div class="alert alert-danger" role="alert">
-                <i class="bi bi-exclamation-circle"></i> <?= e($error) ?>
+            <div class="app-alert app-alert-danger" role="alert">
+                <i data-lucide="alert-circle"></i> <?= e($error) ?>
             </div>
         <?php endif; ?>
         <?php if ($success = Session::getFlash('success')): ?>
-            <div class="alert alert-success" role="alert">
-                <i class="bi bi-check-circle"></i> <?= e($success) ?>
+            <div class="app-alert app-alert-success" role="alert">
+                <i data-lucide="check-circle"></i> <?= e($success) ?>
             </div>
         <?php endif; ?>
         
@@ -110,14 +110,14 @@
             <?= csrfField() ?>
             
             <div class="form-group">
-                <label for="email" class="form-label">
-                    <i class="bi bi-envelope"></i> Adresse email
+                <label for="email" class="app-label">
+                    <i data-lucide="mail"></i> Adresse email
                 </label>
                 <input 
                     type="email" 
                     id="email" 
                     name="email" 
-                    class="form-control" 
+                    class="border rounded-md px-3 py-2 text-sm w-full" 
                     placeholder="votre@email.com"
                     required 
                     autofocus
@@ -125,27 +125,27 @@
             </div>
             
             <div class="form-group">
-                <label for="password" class="form-label">
-                    <i class="bi bi-lock"></i> Mot de passe
+                <label for="password" class="app-label">
+                    <i data-lucide="lock"></i> Mot de passe
                 </label>
                 <input 
                     type="password" 
                     id="password" 
                     name="password" 
-                    class="form-control" 
+                    class="border rounded-md px-3 py-2 text-sm w-full" 
                     placeholder="Votre mot de passe"
                     required
                 >
             </div>
             
-            <button type="submit" class="btn-login">
-                <i class="bi bi-box-arrow-in-right"></i> Se connecter
+            <button type="submit" class="login-button">
+                <i data-lucide="log-in"></i> Se connecter
             </button>
         </form>
         
         <hr class="my-4" style="color: #e0e0e0;">
-        <p class="text-center text-muted small">
-            <i class="bi bi-shield-lock"></i> Connexion sécurisée
+        <p class="text-center text-gray-500 small">
+            <i data-lucide="shield"></i> Connexion sécurisée
         </p>
     </div>
 </div>

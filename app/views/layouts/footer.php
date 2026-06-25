@@ -1,23 +1,19 @@
         </main>
         </div>
-        </div>
-        <footer class="footer mt-5">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-6">
+        <footer class="app-footer">
+            <div class="mx-auto flex max-w-7xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
                         <small>&copy; <?= date('Y') ?> <?= e(APP_NAME) ?> - Tous droits réservés.</small>
                     </div>
-                    <div class="col-md-6 text-end">
-                        <small>v<?= e(APP_VERSION) ?> | <a href="#" class="text-white-50">Aide</a></small>
+                    <div class="sm:text-right">
+                        <small>v<?= e(APP_VERSION) ?> | <a href="#" class="text-white/70 hover:text-white">Aide</a></small>
                     </div>
-                </div>
             </div>
         </footer>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
         <!-- Bouton flottant Agent IA -->
-        <button id="ai-assistant-btn" class="btn btn-primary rounded-circle" style="
+        <button id="ai-assistant-btn" class="app-btn app-btn-primary rounded-full" style="
     position: fixed;
     bottom: 30px;
     right: 30px;
@@ -32,24 +28,23 @@
     justify-content: center;
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
-" title="Ouvrir l'assistant IA">🤖</button>
+" title="Ouvrir l'assistant IA"><i data-lucide="bot"></i></button>
 
         <!-- Modal Agent IA -->
-        <div class="modal fade" id="aiAssistantModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title">🤖 Assistant IA BK_Business</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+        <div class="app-modal" id="aiAssistantModal" tabindex="-1" aria-hidden="true">
+            <div class="app-modal-dialog">
+                    <div class="app-modal-header">
+                        <h5 class="flex items-center gap-2 font-semibold"><i data-lucide="bot"></i> Assistant IA BK_Business</h5>
+                        <button type="button" class="app-close app-close-white" data-dismiss="modal"
                             aria-label="Fermer"></button>
                     </div>
-                    <div class="modal-body" style="max-height: 600px; overflow-y: auto;">
+                    <div class="app-modal-body">
                         <div id="ai-modal-chat"
-                            style="height: 400px; overflow-y: auto; background-color: #f8f9fa; border-radius: 0.25rem; padding: 1rem; margin-bottom: 1rem;">
-                            <div id="ai-welcome" class="alert alert-info alert-permanent mb-0">
-                                <strong>🤖 Bienvenue !</strong>
+                            class="mb-4 h-96 overflow-y-auto rounded-md bg-slate-50 p-4">
+                            <div id="ai-welcome" class="app-alert app-alert-info alert-permanent">
+                                <strong class="flex items-center gap-2"><i data-lucide="bot-message-square"></i> Bienvenue !</strong>
                                 <p class="mb-2">Je suis votre assistant IA. Posez-moi vos questions sur :</p>
-                                <ul class="mb-0 ps-3">
+                                <ul class="list-disc pl-5">
                                     <li>Les stocks et soldes</li>
                                     <li>Les transactions</li>
                                     <li>Les alertes actives</li>
@@ -61,31 +56,30 @@
                         <!-- Boutons raccourcis rapides -->
                         <div id="ai-shortcuts"
                             style="margin-bottom: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-                            <button type="button" class="btn btn-sm btn-outline-primary ai-shortcut"
+                            <button type="button" class="app-btn app-btn-sm app-btn-outline-primary ai-shortcut"
                                 data-question="Quel est l'état actuel des soldes?">
-                                <i class="bi bi-wallet2"></i> Soldes
+                                <i data-lucide="wallet"></i> Soldes
                             </button>
-                            <button type="button" class="btn btn-sm btn-outline-primary ai-shortcut"
+                            <button type="button" class="app-btn app-btn-sm app-btn-outline-primary ai-shortcut"
                                 data-question="Combien de transactions avons-nous aujourd'hui?">
-                                <i class="bi bi-arrow-left-right"></i> Transactions
+                                <i data-lucide="arrow-left-right"></i> Transactions
                             </button>
-                            <button type="button" class="btn btn-sm btn-outline-warning ai-shortcut"
+                            <button type="button" class="app-btn app-btn-sm border border-warning/40 bg-white text-warning hover:bg-orange-50 ai-shortcut"
                                 data-question="Quelles sont les alertes actives?">
-                                <i class="bi bi-exclamation-triangle"></i> Alertes
+                                <i data-lucide="alert-triangle"></i> Alertes
                             </button>
-                            <button type="button" class="btn btn-sm btn-outline-success ai-shortcut"
+                            <button type="button" class="app-btn app-btn-sm border border-success/40 bg-white text-success hover:bg-green-50 ai-shortcut"
                                 data-question="Donne-moi une analyse rapide de la situation">
-                                <i class="bi bi-graph-up"></i> Analyse
+                                <i data-lucide="trending-up"></i> Analyse
                             </button>
                         </div>
 
-                        <div class="input-group">
-                            <input type="text" id="ai-modal-input" class="form-control" placeholder="Votre question..."
+                        <div class="app-input-group">
+                            <input type="text" id="ai-modal-input" class="app-field" placeholder="Votre question..."
                                 autocomplete="off">
-                            <button class="btn btn-primary" id="ai-modal-send" type="button">Envoyer</button>
+                            <button class="app-btn app-btn-primary" id="ai-modal-send" type="button">Envoyer</button>
                         </div>
                     </div>
-                </div>
             </div>
         </div>
 
@@ -135,17 +129,35 @@
         <script>
 document.addEventListener('DOMContentLoaded', function() {
     const aiBtn = document.getElementById('ai-assistant-btn');
-    const aiModal = new bootstrap.Modal(document.getElementById('aiAssistantModal'));
+    const aiModal = document.getElementById('aiAssistantModal');
     const chatDiv = document.getElementById('ai-modal-chat');
     const inputField = document.getElementById('ai-modal-input');
-    const sendBtn = document.getElementById('ai-modal-send');
+    const sendButton = document.getElementById('ai-modal-send');
     const welcomeDiv = document.getElementById('ai-welcome');
     const shortcutsDiv = document.getElementById('ai-shortcuts');
     let firstMessageSent = false;
 
     aiBtn.addEventListener('click', function() {
-        aiModal.show();
+        openModal(aiModal);
         inputField.focus();
+    });
+
+    function openModal(modal) {
+        if (!modal) return;
+        modal.classList.add('show');
+        document.body.classList.add('modal-open');
+    }
+
+    function closeModal(modal) {
+        if (!modal) return;
+        modal.classList.remove('show');
+        document.body.classList.remove('modal-open');
+    }
+
+    aiModal.querySelectorAll('[data-dismiss="modal"]').forEach((button) => {
+        button.addEventListener('click', function() {
+            closeModal(aiModal);
+        });
     });
 
     function removeWelcome() {
@@ -163,13 +175,15 @@ document.addEventListener('DOMContentLoaded', function() {
         removeWelcome();
         addMessage(question, 'user');
         inputField.value = '';
-        sendBtn.disabled = true;
+        sendButton.disabled = true;
 
-        fetch('<?= url("api/agent/ask") ?>', {
+        fetch('/api/agent/ask', {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
                 },
                 body: JSON.stringify({
                     question: question,
@@ -177,30 +191,34 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
             })
             .then(response => {
-                const ct = response.headers.get('content-type') || '';
-                if (!ct.includes('application/json')) {
-                    return response.text().then(text => {
+                return response.text().then(text => {
+                    const ct = response.headers.get('content-type') || '';
+                    if (!ct.includes('application/json')) {
                         console.error('Non-JSON response from /api/agent/ask:', text);
                         const loginUrl = '<?= url("auth/login") ?>';
-                        addMessage(`❌ Erreur : vous semblez déconnecté. <a href="${loginUrl}">Se connecter</a>`, 'error');
-                        // Do not throw to avoid duplicate generic network error
+                        addMessage(`Erreur : vous semblez déconnecté. <a href="${loginUrl}">Se connecter</a>`, 'error');
                         return Promise.reject(new Error('Non-JSON response'));
-                    });
-                }
-                return response.json();
+                    }
+                    try {
+                        return JSON.parse(text);
+                    } catch (err) {
+                        console.error('Invalid JSON response from /api/agent/ask:', text);
+                        return Promise.reject(new Error('Réponse JSON invalide du serveur'));
+                    }
+                });
             })
             .then(data => {
                 if (data.success) {
                     addMessage(data.reponse, 'ai');
                 } else {
-                    addMessage('❌ Erreur : ' + (data.error || 'Erreur inconnue'), 'error');
+                    addMessage('Erreur : ' + (data.error || 'Erreur inconnue'), 'error');
                 }
             })
             .catch(error => {
-                addMessage('❌ Erreur réseau : ' + error.message, 'error');
+                addMessage('Erreur réseau : ' + error.message, 'error');
             })
             .finally(() => {
-                sendBtn.disabled = false;
+                sendButton.disabled = false;
                 inputField.focus();
             });
     }
@@ -226,7 +244,7 @@ document.addEventListener('DOMContentLoaded', function() {
         chatDiv.scrollTop = chatDiv.scrollHeight;
     }
 
-    sendBtn.addEventListener('click', sendMessage);
+    sendButton.addEventListener('click', sendMessage);
     inputField.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') sendMessage();
     });
@@ -243,17 +261,15 @@ document.addEventListener('DOMContentLoaded', function() {
         </script>
 
         <!-- Modal global pour afficher les détails d'une ligne (mobile) -->
-        <div class="modal fade" id="rowDetailsModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Détails</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        <div class="app-modal" id="rowDetailsModal" tabindex="-1" aria-hidden="true">
+            <div class="app-modal-dialog app-modal-dialog-sm">
+                    <div class="app-modal-header">
+                        <h5 class="flex items-center gap-2 font-semibold"><i data-lucide="list"></i> Détails</h5>
+                        <button type="button" class="app-close app-close-white" data-dismiss="modal" aria-label="Fermer"></button>
                     </div>
-                    <div class="modal-body">
+                    <div class="app-modal-body">
                         <div id="rowDetailsContent"></div>
                     </div>
-                </div>
             </div>
         </div>
 

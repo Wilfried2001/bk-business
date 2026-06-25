@@ -1,40 +1,33 @@
-<nav class="navbar navbar-expand-lg navbar-dark fixed-top">
-    <div class="container-fluid px-4">
-        <button class="btn btn-outline-light d-lg-none me-2" type="button" data-toggle="sidebar" aria-label="Ouvrir le menu">
-            <i class="bi bi-list"></i>
+<nav class="app-topbar">
+    <div class="flex w-full items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+        <button class="app-btn app-btn-sm border border-white/60 text-white hover:bg-white/10 lg:hidden" type="button" data-toggle="sidebar" aria-label="Ouvrir le menu">
+            <i data-lucide="menu"></i>
         </button>
-        <a class="navbar-brand" href="<?= url('dashboard') ?>">
-            <i class="bi bi-briefcase-fill"></i> <?= e(APP_NAME) ?>
+        <a class="app-brand" href="<?= url('dashboard') ?>">
+            <i data-lucide="briefcase"></i> <?= e(APP_NAME) ?>
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Basculer la navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="mainNav">
-            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                <?php if (Auth::hasRole(['AGENT', 'SUPERVISEUR', 'COMPTABLE', 'DG'])): ?>
-                    <li class="nav-item me-2">
-                        <a class="btn btn-outline-light" href="<?= url('agent') ?>">
-                            <i class="bi bi-robot"></i> Agent IA
+        </div>
+        <div class="flex items-center gap-3">
+            <?php if (Auth::hasRole(['AGENT', 'SUPERVISEUR', 'COMPTABLE', 'DG'])): ?>
+                <a class="app-btn app-btn-sm border border-white/60 text-white hover:bg-white/10" href="<?= url('agent') ?>">
+                    <i data-lucide="bot"></i> Agent IA
+                </a>
+            <?php endif; ?>
+            <?php if (Auth::check()): ?>
+                <div class="app-dropdown">
+                    <a class="app-btn app-btn-sm text-white hover:bg-white/10 app-dropdown-toggle" href="#" id="userDropdown" role="button" aria-expanded="false">
+                        <i data-lucide="user-circle"></i> <?= e(Auth::nom()) ?>
+                    </a>
+                    <div class="app-dropdown-menu" aria-labelledby="userDropdown">
+                        <a class="app-dropdown-item" href="<?= url('dashboard') ?>"><i data-lucide="gauge"></i> Profil</a>
+                        <div class="my-2 h-px bg-slate-100"></div>
+                        <a class="app-dropdown-item text-danger" href="<?= url('auth/logout') ?>">
+                            <i data-lucide="log-out"></i> Déconnexion
                         </a>
-                    </li>
-                <?php endif; ?>
-                <?php if (Auth::check()): ?>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-person-circle"></i> <?= e(Auth::nom()) ?>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                            <li><a class="dropdown-item" href="<?= url('dashboard') ?>"><i class="bi bi-speedometer2"></i> Profil</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <a class="dropdown-item text-danger" href="<?= url('auth/logout') ?>">
-                                    <i class="bi bi-box-arrow-right"></i> Déconnexion
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                <?php endif; ?>
-            </ul>
+                    </div>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 </nav>

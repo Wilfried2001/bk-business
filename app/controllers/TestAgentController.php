@@ -20,7 +20,7 @@ class TestAgentController extends Controller {
             <title>Tests - Agent IA BK_Business</title>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1">
-            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+            <!-- Bootstrap removed: using local Tailwind + custom styles -->
             <style>
                 body { background-color: #f8f9fa; padding: 2rem 0; }
                 .test-result { margin-bottom: 1.5rem; }

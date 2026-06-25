@@ -3,25 +3,13 @@
 // ============================================================
 
 document.addEventListener("DOMContentLoaded", function () {
-  // ── Activer les tooltips Bootstrap ──
-  const tooltipTriggerList = [].slice.call(
-    document.querySelectorAll('[data-bs-toggle="tooltip"]'),
-  );
-  tooltipTriggerList.map(function (tooltipTriggerEl) {
-    return new bootstrap.Tooltip(tooltipTriggerEl);
-  });
-
-  // ── Activer les popovers Bootstrap ──
-  const popoverTriggerList = [].slice.call(
-    document.querySelectorAll('[data-bs-toggle="popover"]'),
-  );
-  popoverTriggerList.map(function (popoverTriggerEl) {
-    return new bootstrap.Popover(popoverTriggerEl);
-  });
+  setupDismissButtons();
+  setupDropdowns();
+  setupCollapseToggles();
 
   // ── Préparer les animations au scroll ──
   document
-    .querySelectorAll(".card, .stat-card")
+    .querySelectorAll(".app-card, .app-stat-card")
     .forEach((el) => el.classList.add("animate-on-scroll"));
   highlightActivePage();
   observeElementsOnScroll();
@@ -31,6 +19,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ── Validations des formulaires ──
   setupFormValidation();
+
+  // ── Initialiser les modals personnalisées ──
+  setupModals();
 
   // ── Confirmation avant suppression ──
   setupDeleteConfirmation();
@@ -48,6 +39,9 @@ document.addEventListener("DOMContentLoaded", function () {
   initDashboardCharts();
   // ── Préparer les détails de lignes pour mobile ──
   setupRowDetails();
+  if (window.lucide) {
+    lucide.replace();
+  }
 });
 
 // Highlight la page active dans la sidebar
@@ -57,7 +51,7 @@ function normalizePath(path) {
 
 function highlightActivePage() {
   const currentPath = normalizePath(window.location.pathname);
-  const sidebarLinks = document.querySelectorAll(".list-group-item");
+  const sidebarLinks = document.querySelectorAll(".app-nav-link");
 
   sidebarLinks.forEach((link) => {
     const href = link.getAttribute("href");
@@ -87,12 +81,12 @@ function observeElementsOnScroll() {
     { threshold: 0.1 },
   );
 
-  document.querySelectorAll(".card, .stat-card").forEach((el) => {
+  document.querySelectorAll(".app-card, .app-stat-card").forEach((el) => {
     observer.observe(el);
   });
 }
 
-// Validation des formulaires Bootstrap
+// Validation des formulaires
 function setupFormValidation() {
   const forms = document.querySelectorAll("form");
 
@@ -104,7 +98,7 @@ function setupFormValidation() {
           event.preventDefault();
           event.stopPropagation();
         }
-        form.classList.add("was-validated");
+        form.classList.add("app-was-validated");
       },
       false,
     );
@@ -135,39 +129,38 @@ function setupCommissionModeToggle() {
 
     const createTrancheRow = (min = "", max = "", fixe = "") => {
       const row = document.createElement("div");
-      row.className = "row g-3 mb-2 tranche-row";
+      row.className = "grid gap-3 md:grid-cols-4 tranche-row";
       row.innerHTML = `
-                <div class="col-md-3">
-                    <label class="form-label">Montant min</label>
-                    <input type="number" name="tranches[montant_min][]" class="form-control" step="0.01" value="${min}" required>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Montant max</label>
-                    <input type="number" name="tranches[montant_max][]" class="form-control" step="0.01" value="${max}">
-                    <div class="form-text">Laisser vide pour plafond infini.</div>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Commission fixe</label>
-                    <input type="number" name="tranches[montant_fixe][]" class="form-control" step="0.01" value="${fixe}" required>
-                </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <button type="button" class="btn btn-outline-danger remove-tranche-row w-100">
-                        <i class="bi bi-trash"></i> Supprimer
-                    </button>
-                </div>
-            `;
-
-      const removeButton = row.querySelector(".remove-tranche-row");
-      if (removeButton) {
-        removeButton.addEventListener("click", () => row.remove());
+        <div>
+          <label class="app-label">Montant min</label>
+          <input type="number" name="tranches[montant_min][]" class="app-field" step="0.01" value="${min}" required>
+        </div>
+        <div>
+          <label class="app-label">Montant max</label>
+          <input type="number" name="tranches[montant_max][]" class="app-field" step="0.01" value="${max}">
+          <div class="app-help">Laisser vide pour plafond infini.</div>
+        </div>
+        <div>
+          <label class="app-label">Commission fixe</label>
+          <input type="number" name="tranches[montant_fixe][]" class="app-field" step="0.01" value="${fixe}" required>
+        </div>
+        <div class="flex items-end">
+          <button type="button" class="app-btn app-btn-outline-danger w-full remove-tranche-row">
+            <i data-lucide="trash"></i> Supprimer
+          </button>
+        </div>
+      `;
+      row.querySelector(".remove-tranche-row").addEventListener("click", () => row.remove());
+      if (window.lucide) {
+        lucide.replace();
       }
       return row;
     };
 
     const updateFormDisplay = () => {
       const mode = modeSelect.value;
-      const valueLabel = valueGroup.querySelector("label");
       const valueInput = valueGroup.querySelector('input[name="valeur"]');
+      const valueLabel = valueGroup.querySelector("label");
 
       if (mode === "TRANCHE") {
         valueGroup.style.display = "none";
@@ -191,8 +184,11 @@ function setupCommissionModeToggle() {
       if (valueLabel) {
         valueLabel.innerHTML =
           mode === "TAUX"
-            ? '<i class="bi bi-percent"></i> Taux (%)'
-            : '<i class="bi bi-currency-dollar"></i> Montant fixe';
+            ? '<i data-lucide="percent"></i> Taux (%)'
+            : '<i data-lucide="dollar-sign"></i> Montant fixe';
+        if (window.lucide) {
+          lucide.replace();
+        }
       }
     };
 
@@ -256,12 +252,11 @@ function formatMoney(value) {
 
 // Ferme automatiquement les alertes après 5 secondes
 function setupAutoCloseAlerts() {
-  const alerts = document.querySelectorAll(".alert:not(.alert-permanent)");
+  const alerts = document.querySelectorAll(".app-alert:not(.alert-permanent)");
 
   alerts.forEach((alert) => {
     setTimeout(() => {
-      const bsAlert = new bootstrap.Alert(alert);
-      bsAlert.close();
+      alert.remove();
     }, 5000);
   });
 }
@@ -269,35 +264,26 @@ function setupAutoCloseAlerts() {
 // Affiche un toast de confirmation
 function showToast(message, type = "success") {
   const toastHTML = `
-        <div class="toast align-items-center text-white bg-${type} border-0" role="alert">
-            <div class="d-flex">
-                <div class="toast-body">
-                    ${message}
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        <div class="app-alert app-alert-${type}" role="status">
+            <div>
+                ${message}
             </div>
+            <button type="button" class="app-close absolute right-3 top-3" data-dismiss="toast" aria-label="Fermer"></button>
         </div>
     `;
 
   const container =
     document.querySelector(".toast-container") ||
     document.body.appendChild(document.createElement("div"));
-  container.classList.add(
-    "toast-container",
-    "position-fixed",
-    "top-0",
-    "end-0",
-    "p-3",
-  );
+  container.classList.add("toast-container");
 
   const toastEl = document.createElement("div");
   toastEl.innerHTML = toastHTML;
-  container.appendChild(toastEl);
-
-  const toast = new bootstrap.Toast(toastEl.querySelector(".toast"));
-  toast.show();
-
-  setTimeout(() => toastEl.remove(), 5000);
+  const toastNode = toastEl.firstElementChild;
+  if (!toastNode) return;
+  container.appendChild(toastNode);
+  setupDismissButtons();
+  setTimeout(() => toastNode.remove(), 5000);
 }
 
 // Initialiser les graphiques du dashboard s'ils existent
@@ -366,7 +352,16 @@ function setupRowDetails() {
   const modalEl = document.getElementById("rowDetailsModal");
   const contentEl = document.getElementById("rowDetailsContent");
   if (!modalEl || !contentEl) return;
-  const modal = new bootstrap.Modal(modalEl);
+
+  const openModal = () => {
+    modalEl.classList.add("show");
+    document.body.classList.add("modal-open");
+  };
+
+  const closeModal = () => {
+    modalEl.classList.remove("show");
+    document.body.classList.remove("modal-open");
+  };
 
   document.querySelectorAll("table.table-mobile-details").forEach((table) => {
     const headers = Array.from(table.querySelectorAll("thead th")).map((th) =>
@@ -382,26 +377,39 @@ function setupRowDetails() {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className =
-        "btn btn-sm btn-outline-primary d-lg-none ms-2 row-details-btn";
-      btn.textContent = "Détails";
+        "app-btn app-btn-sm app-btn-outline-primary lg:hidden ml-2 row-details-btn";
+      btn.innerHTML = '<i data-lucide="list"></i> Détails';
       btn.addEventListener("click", () => {
         const cells = Array.from(tr.querySelectorAll("td"));
         const visibleCells = cells.slice(0, headers.length);
-        let html = '<dl class="row">';
+        let html = '<dl class="grid grid-cols-[9rem_1fr] gap-x-3 gap-y-2">';
 
         visibleCells.forEach((cell, index) => {
           const label = headers[index] || `Colonne ${index + 1}`;
-          html += `<dt class="col-5 fw-bold">${eHtml(label)}</dt>`;
-          html += `<dd class="col-7">${eHtml(cell.innerText.trim())}</dd>`;
+          html += `<dt class="font-semibold text-slate-600">${eHtml(label)}</dt>`;
+          html += `<dd>${eHtml(cell.innerText.trim())}</dd>`;
         });
 
         html += "</dl>";
         contentEl.innerHTML = html;
-        modal.show();
+        openModal();
       });
 
       lastTd.appendChild(btn);
+      if (window.lucide) {
+        lucide.replace();
+      }
     });
+  });
+
+  modalEl.querySelectorAll('[data-dismiss="modal"]').forEach((button) => {
+    button.addEventListener("click", closeModal);
+  });
+
+  modalEl.addEventListener("click", (event) => {
+    if (event.target === modalEl) {
+      closeModal();
+    }
   });
 
   function eHtml(str) {
@@ -417,20 +425,110 @@ function setupTableActions() {
   const tables = document.querySelectorAll("table");
 
   tables.forEach((table) => {
-    table.classList.add("table-hover");
+    table.classList.add("app-table");
   });
+}
+
+function setupDismissButtons() {
+  document.querySelectorAll('[data-dismiss="alert"]').forEach((button) => {
+    button.addEventListener("click", () => {
+      const alert = button.closest(".app-alert");
+      if (alert) alert.remove();
+    });
+  });
+
+  document.querySelectorAll('[data-dismiss="modal"]').forEach((button) => {
+    button.addEventListener("click", () => {
+      const modal = button.closest(".app-modal");
+      if (modal) {
+        modal.classList.remove("show");
+        document.body.classList.remove("modal-open");
+      }
+    });
+  });
+
+  document.querySelectorAll('[data-dismiss="toast"]').forEach((button) => {
+    button.addEventListener("click", () => {
+      const toast = button.closest(".app-alert");
+      if (toast) toast.remove();
+    });
+  });
+}
+
+function setupDropdowns() {
+  document.querySelectorAll(".app-dropdown-toggle").forEach((toggle) => {
+    const menu = toggle.nextElementSibling;
+    if (!menu || !menu.classList.contains("app-dropdown-menu")) return;
+    toggle.addEventListener("click", (event) => {
+      event.preventDefault();
+      menu.classList.toggle("show");
+    });
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest(".app-dropdown")) {
+      document.querySelectorAll(".app-dropdown-menu.show").forEach((menu) => {
+        menu.classList.remove("show");
+      });
+    }
+  });
+}
+
+function setupCollapseToggles() {
+  document.querySelectorAll('[data-toggle="collapse"]').forEach((toggle) => {
+    const targetSelector = toggle.getAttribute("data-target");
+    if (!targetSelector) return;
+    const target = document.querySelector(targetSelector);
+    if (!target) return;
+    toggle.addEventListener("click", (event) => {
+      event.preventDefault();
+      target.classList.toggle("show");
+    });
+  });
+}
+
+function setupModals() {
+  document.querySelectorAll('[data-toggle="modal"]').forEach((button) => {
+    const targetSelector = button.getAttribute("data-target");
+    if (!targetSelector) return;
+    const target = document.querySelector(targetSelector);
+    if (!target) return;
+
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      openModal(target);
+    });
+  });
+
+  document.querySelectorAll('[data-dismiss="modal"]').forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      const modal = button.closest(".app-modal");
+      if (modal) closeModal(modal);
+    });
+  });
+
+  function openModal(modal) {
+    modal.classList.add("show");
+    document.body.classList.add("modal-open");
+  }
+
+  function closeModal(modal) {
+    modal.classList.remove("show");
+    document.body.classList.remove("modal-open");
+  }
 }
 
 // Toggle du menu mobile
 function setupMobileMenu() {
   const toggleBtn = document.querySelector('[data-toggle="sidebar"]');
-  const sidebar = document.querySelector(".sidebar");
+  const sidebar = document.querySelector(".app-sidebar");
   const closeBtn = document.querySelector(".close-sidebar");
   let backdrop = null;
 
   const createBackdrop = () => {
     backdrop = document.createElement("div");
-    backdrop.className = "sidebar-backdrop";
+    backdrop.className = "app-sidebar-backdrop";
     document.body.appendChild(backdrop);
     requestAnimationFrame(() => backdrop.classList.add("show"));
     backdrop.addEventListener("click", closeSidebar);

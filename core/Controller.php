@@ -67,9 +67,22 @@ abstract class Controller {
 
     // Réponse JSON (pour les appels AJAX)
     protected function json(array $data, int $status = 200): void {
+        if (ob_get_length() !== false && ob_get_length() > 0) {
+            ob_clean();
+        }
         http_response_code($status);
-        header('Content-Type: application/json');
-        echo json_encode($data);
+        header('Content-Type: application/json; charset=utf-8');
+        $json = json_encode($data, JSON_UNESCAPED_UNICODE);
+        if ($json === false) {
+            $json = json_encode([
+                'success' => false,
+                'error' => 'Erreur interne : impossible de sérialiser la réponse JSON.'
+            ], JSON_UNESCAPED_UNICODE);
+            if ($json === false) {
+                $json = '{"success":false,"error":"Erreur JSON critique"}';
+            }
+        }
+        echo $json;
         exit;
     }
 
@@ -106,7 +119,8 @@ abstract class Controller {
         $xhr = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
         $uri = $_SERVER['REQUEST_URI'] ?? '';
         $path = parse_url($uri, PHP_URL_PATH) ?: '';
-        return $xhr || stripos($accept, 'application/json') !== false || str_starts_with($path, '/api/');
+        $isApiPath = stripos($path, '/api/') !== false;
+        return $xhr || stripos($accept, 'application/json') !== false || $isApiPath;
     }
 
 // Méthode validate : gère validate. 

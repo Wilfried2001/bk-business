@@ -51,7 +51,7 @@ class Router {
         echo '<div class="container mt-5 text-center">'
              . '<h1 class="display-1">404</h1>'
              . '<p class="lead">Page introuvable.</p>'
-             . '<a href="' . BASE_URL . '/dashboard" class="btn btn-primary">Retour au tableau de bord</a>'
+             . '<a href="' . BASE_URL . '/dashboard" class="app-btn app-btn-primary">Retour au tableau de bord</a>'
              . '</div>';
         require_once VIEWS_PATH . '/layouts/footer.php';
     }
