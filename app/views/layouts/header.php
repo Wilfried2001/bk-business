@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($pageTitle ?? APP_NAME) ?> - Gestion d'entreprise</title>
     <link rel="stylesheet" href="<?= url('css/style.css') ?>">
+    <link rel="stylesheet" href="<?= url('css/business-views.css') ?>">
     <script src="<?= url('js/icons.js') ?>"></script>
     <style>
     html {

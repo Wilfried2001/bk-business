@@ -190,282 +190,275 @@
 
 <?php else: ?>
 
-<!-- Dashboard Principal -->
-<div class="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-    <div>
-        <h1 class="flex items-center gap-2 text-2xl font-bold text-slate-900"><i data-lucide="gauge"></i> Tableau de bord</h1>
-        <p class="text-sm text-slate-500">Vue synthétique des transactions, des stocks et des alertes.</p>
-    </div>
-</div>
+<?php
+    $canSeeFinance = Auth::hasRole(['COMPTABLE', 'DG']);
+    $moneyTrend = $variationMontantJour ?? null;
+    $txTrend = $variationTransactionsJour ?? null;
+    $trendClass = fn($value) => $value === null ? 'neutral' : ($value >= 0 ? 'up' : 'down');
+    $trendText = fn($value) => $value === null ? 'Nouveau point' : (($value >= 0 ? '+' : '') . $value . '%');
+    $serviceInitials = function (string $name): string {
+        $parts = preg_split('/\s+/', trim($name));
+        $letters = '';
+        foreach (array_slice($parts ?: [], 0, 2) as $part) {
+            $letters .= substr($part, 0, 1);
+        }
+        return strtoupper($letters ?: 'BK');
+    };
+    $stockPercent = function (?array $solde): int {
+        if (!$solde || empty($solde['valeur_seuil'])) return 100;
+        return max(0, min(140, (int)round(((float)$solde['montant_actuel'] / (float)$solde['valeur_seuil']) * 100)));
+    };
+?>
 
-<!-- Statistiques principales -->
-<div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-    <div class="app-stat-card primary h-full">
-        <div class="mb-4 flex items-start justify-between gap-4">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Transactions du jour</p>
-                <p class="mt-2 text-3xl font-bold text-primary"><?= e($nbTransactionsJour) ?></p>
-            </div>
-            <span class="inline-flex h-11 w-11 items-center justify-center rounded-md bg-primary/10 text-primary"><i data-lucide="arrow-left-right"></i></span>
+<div class="business-dashboard">
+    <section class="dashboard-head">
+        <div>
+            <p class="dashboard-eyebrow">Pilotage BK Business</p>
+            <h1>Bonjour, <?= e(Auth::nom() ?: 'Directeur') ?></h1>
+            <p>Transactions, float, caisse, alertes et commissions à suivre aujourd'hui.</p>
         </div>
-        <p class="flex items-center gap-1 text-xs text-slate-500"><i data-lucide="arrow-up"></i> Opérations validées</p>
-    </div>
-
-    <div class="app-stat-card success h-full">
-        <div class="mb-4 flex items-start justify-between gap-4">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Montant validé</p>
-                <p class="mt-2 text-2xl font-bold text-success"><?= e(formatMontant($totalMontantJour)) ?></p>
-            </div>
-            <span class="inline-flex h-11 w-11 items-center justify-center rounded-md bg-success/10 text-success"><i data-lucide="dollar-sign"></i></span>
+        <div class="dashboard-actions">
+            <span class="date-pill"><i data-lucide="calendar-days"></i> <?= e(date('d M Y')) ?></span>
         </div>
-        <p class="flex items-center gap-1 text-xs text-slate-500"><i data-lucide="arrow-up"></i> Aujourd'hui</p>
-    </div>
+    </section>
 
-    <div class="app-stat-card warning h-full">
-        <div class="mb-4 flex items-start justify-between gap-4">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Alertes actives</p>
-                <p class="mt-2 text-3xl font-bold text-warning"><?= e($nbAlertesActives) ?></p>
+    <section class="kpi-grid">
+        <article class="business-kpi-card accent-transactions">
+            <div class="kpi-icon"><i data-lucide="arrow-left-right"></i></div>
+            <p>Transactions</p>
+            <strong><?= e($nbTransactionsJour) ?></strong>
+            <span class="money-trend <?= e($trendClass($txTrend)) ?>"><?= e($trendText($txTrend)) ?> vs hier</span>
+        </article>
+        <article class="business-kpi-card accent-volume">
+            <div class="kpi-icon"><i data-lucide="banknote"></i></div>
+            <p>Volume traité</p>
+            <strong><?= e(formatMontant((float)$totalMontantJour)) ?></strong>
+            <span class="money-trend <?= e($trendClass($moneyTrend)) ?>"><?= e($trendText($moneyTrend)) ?> aujourd'hui</span>
+        </article>
+        <article class="business-kpi-card accent-alert">
+            <div class="kpi-icon"><i data-lucide="siren"></i></div>
+            <p>Alertes actives</p>
+            <strong><?= e($nbAlertesActives) ?></strong>
+            <span class="risk-badge <?= $nbAlertesActives > 0 ? 'danger' : 'success' ?>"><?= e($nbAlertesActives > 0 ? 'Action requise' : 'Services stables') ?></span>
+        </article>
+        <?php if ($canSeeFinance): ?>
+            <article class="business-kpi-card accent-commission">
+                <div class="kpi-icon"><i data-lucide="percent"></i></div>
+                <p>Commissions mois</p>
+                <strong><?= e(formatMontant((float)$totalCommissionsMois)) ?></strong>
+                <span><?= e(date('m/Y')) ?></span>
+            </article>
+            <article class="business-kpi-card accent-margin">
+                <div class="kpi-icon"><i data-lucide="chart-no-axes-combined"></i></div>
+                <p>Rentabilité</p>
+                <strong><?= e($rentabiliteMois['taux'] ?? 0) ?>%</strong>
+                <div class="objective-bar"><span style="width: <?= e(min(100, (int)round((($rentabiliteMois['taux'] ?? 0) / max(1, ($rentabiliteMois['objectif'] ?? 15))) * 100))) ?>%"></span></div>
+                <span>Objectif: <?= e($rentabiliteMois['objectif'] ?? 15) ?>%</span>
+            </article>
+        <?php endif; ?>
+    </section>
+
+    <section class="dashboard-grid-main">
+        <article class="app-card chart-card">
+            <div class="app-card-header">
+                <span><i data-lucide="activity"></i> Évolution des transactions</span>
+                <span class="app-badge app-badge-secondary">30 jours</span>
             </div>
-            <span class="inline-flex h-11 w-11 items-center justify-center rounded-md bg-warning/10 text-warning"><i data-lucide="alert-triangle"></i></span>
-        </div>
-        <p class="flex items-center gap-1 text-xs text-slate-500"><i data-lucide="info"></i> À traiter</p>
-    </div>
-
-    <?php if (isset($totalCommissionsMois)): ?>
-    <div class="app-stat-card h-full border-l-info">
-        <div class="mb-4 flex items-start justify-between gap-4">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Commissions ce mois</p>
-                <p class="mt-2 text-2xl font-bold text-info"><?= e(formatMontant($totalCommissionsMois)) ?></p>
-            </div>
-            <span class="inline-flex h-11 w-11 items-center justify-center rounded-md bg-info/10 text-info"><i data-lucide="percent"></i></span>
-        </div>
-        <p class="flex items-center gap-1 text-xs text-slate-500"><i data-lucide="calendar"></i> Calculées</p>
-    </div>
-    <?php endif; ?>
-</div>
-
-<div class="space-y-6">
-    <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <div class="app-card h-full">
-            <div class="app-card-header"><span class="flex items-center gap-2"><i data-lucide="trending-up"></i> Transactions (7 derniers jours)</span></div>
-            <div class="app-card-body h-72">
+            <div class="app-card-body">
                 <canvas id="transactionsChart" data-chart='<?= e(json_encode($chartTransactions)) ?>'></canvas>
             </div>
-        </div>
+        </article>
 
-        <div class="app-card h-full">
-            <div class="app-card-header"><span class="flex items-center gap-2"><i data-lucide="pie-chart"></i> Commissions (par service)</span></div>
-            <div class="app-card-body h-72">
-                <canvas id="commissionsChart" data-chart='<?= e(json_encode($chartCommissions)) ?>'></canvas>
-            </div>
-        </div>
-    </div>
+        <?php if ($canSeeFinance): ?>
+            <article class="app-card chart-card">
+                <div class="app-card-header">
+                    <span><i data-lucide="badge-percent"></i> Évolution des commissions</span>
+                    <span class="app-badge app-badge-secondary">30 jours</span>
+                </div>
+                <div class="app-card-body">
+                    <canvas id="commissionsDailyChart" data-chart='<?= e(json_encode($chartCommissionsDaily ?? ['labels' => [], 'data' => []])) ?>'></canvas>
+                </div>
+            </article>
+        <?php else: ?>
+            <article class="app-card service-focus-card">
+                <div class="app-card-header">
+                    <span><i data-lucide="radio-tower"></i> Services sollicités</span>
+                    <span class="app-badge app-badge-secondary">Activité</span>
+                </div>
+                <div class="app-card-body">
+                    <?php foreach (array_slice($topServicesUsage ?? [], 0, 5) as $service): ?>
+                        <div class="service-focus-row">
+                            <span><?= e($service['nom_service']) ?></span>
+                            <strong><?= e($service['total_transactions']) ?> tx</strong>
+                            <small><?= e(formatMontant((float)$service['total_montant'])) ?></small>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </article>
+        <?php endif; ?>
 
-    <div class="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-4">
-        <div class="app-card h-full">
+        <aside class="app-card alert-panel">
             <div class="app-card-header">
-                <span class="flex items-center gap-2"><i data-lucide="bar-chart"></i> Services les plus utilisés</span>
+                <span><i data-lucide="bell-ring"></i> Alertes récentes</span>
+                <a href="<?= url('alertes') ?>">Voir tout</a>
             </div>
             <div class="app-card-body">
-                <?php if (empty($topServicesUsage)): ?>
-                    <p class="text-sm text-slate-500">Aucune donnée d'utilisation disponible.</p>
+                <?php if (empty($alertesActives)): ?>
+                    <div class="empty-state compact"><i data-lucide="shield-check"></i><span>Aucune alerte active.</span></div>
                 <?php else: ?>
-                    <div class="overflow-x-auto">
-                        <table class="app-table app-table-compact min-w-[22rem]">
-                            <thead>
-                                <tr>
-                                    <th>Service</th>
-                                    <th class="text-right">Transactions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($topServicesUsage as $service): ?>
-                                <tr>
-                                    <td class="font-medium text-slate-800"><?= e($service['nom_service']) ?></td>
-                                    <td class="text-right font-semibold"><?= e($service['total_transactions']) ?></td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
+                    <div class="alert-list">
+                        <?php foreach (array_slice($alertesActives, 0, 4) as $alerte): ?>
+                            <div class="alert-card <?= e($alerte['criticite']) ?>">
+                                <div>
+                                    <strong><?= e($alerte['nom_service']) ?> - <?= e(ucfirst(strtolower($alerte['type_solde']))) ?></strong>
+                                    <span><?= e(formatMontant((float)$alerte['montant_actuel'])) ?> / seuil <?= e(formatMontant((float)$alerte['valeur_seuil'])) ?></span>
+                                    <small>Écart <?= e(formatMontant((float)$alerte['ecart_seuil'])) ?></small>
+                                </div>
+                                <a href="<?= url('stocks') ?>" aria-label="Voir stock"><i data-lucide="arrow-up-right"></i></a>
+                            </div>
+                        <?php endforeach; ?>
                     </div>
                 <?php endif; ?>
             </div>
-        </div>
+        </aside>
+    </section>
 
-        <div class="app-card h-full">
+    <section class="dashboard-grid-secondary">
+        <article class="app-card balances-card">
             <div class="app-card-header">
-                <span class="flex items-center gap-2"><i data-lucide="dollar-sign"></i> Services les plus valorisés</span>
-            </div>
-            <div class="app-card-body">
-                <?php if (empty($topServicesMontant)): ?>
-                    <p class="text-sm text-slate-500">Aucune donnée de montant disponible.</p>
-                <?php else: ?>
-                    <div class="overflow-x-auto">
-                        <table class="app-table app-table-compact min-w-[24rem]">
-                            <thead>
-                                <tr>
-                                    <th>Service</th>
-                                    <th class="text-right">Montant</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($topServicesMontant as $service): ?>
-                                <tr>
-                                    <td class="font-medium text-slate-800"><?= e($service['nom_service']) ?></td>
-                                    <td class="text-right font-semibold"><?= e(formatMontant((float)$service['total_montant'])) ?></td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                <?php endif; ?>
-            </div>
-        </div>
-
-        <div class="app-card h-full">
-            <div class="app-card-header">
-                <span class="flex items-center gap-2"><i data-lucide="bell"></i> Services avec alertes</span>
-            </div>
-            <div class="app-card-body">
-                <?php if (empty($topAlertServices)): ?>
-                    <p class="text-sm text-slate-500">Aucun service en alerte pour le moment.</p>
-                <?php else: ?>
-                    <div class="overflow-x-auto">
-                        <table class="app-table app-table-compact min-w-[22rem]">
-                            <thead>
-                                <tr>
-                                    <th>Service</th>
-                                    <th class="text-right">Alertes</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($topAlertServices as $service): ?>
-                                <tr>
-                                    <td class="font-medium text-slate-800"><?= e($service['nom_service']) ?></td>
-                                    <td class="text-right font-semibold text-danger"><?= e($service['active_alerts']) ?></td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                <?php endif; ?>
-            </div>
-        </div>
-
-        <div class="app-card h-full">
-            <div class="app-card-header">
-                <span class="flex items-center gap-2"><i data-lucide="trending-up"></i> Services rentables</span>
-            </div>
-            <div class="app-card-body">
-                <?php if (empty($topProfitServices)): ?>
-                    <p class="text-sm text-slate-500">Aucune donnée de rentabilité disponible.</p>
-                <?php else: ?>
-                    <div class="overflow-x-auto">
-                        <table class="app-table app-table-compact min-w-[24rem]">
-                            <thead>
-                                <tr>
-                                    <th>Service</th>
-                                    <th class="text-right">Commission</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($topProfitServices as $service): ?>
-                                <tr>
-                                    <td class="font-medium text-slate-800"><?= e($service['nom_service']) ?></td>
-                                    <td class="text-right font-semibold"><?= e(formatMontant((float)$service['total_commission'])) ?></td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                <?php endif; ?>
-            </div>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <div class="app-card">
-            <div class="app-card-header">
-                <span class="flex items-center gap-2"><i data-lucide="package"></i> Soldes de services</span>
+                <span><i data-lucide="wallet-cards"></i> Soldes par service</span>
+                <div class="table-actions">
+                    <span class="app-badge app-badge-primary">Float</span>
+                    <span class="app-badge app-badge-secondary">Caisse</span>
+                    <a href="<?= url('stocks') ?>" class="app-btn app-btn-sm app-btn-secondary"><i data-lucide="eye"></i> Stocks</a>
+                </div>
             </div>
             <div class="app-card-body p-0">
                 <div class="overflow-x-auto">
-                    <table class="app-table table-mobile-details min-w-[44rem]">
+                    <table class="app-table service-balance-table table-mobile-details">
                         <thead>
                             <tr>
                                 <th>Service</th>
-                                <th>Type</th>
-                                <th class="text-right">Montant</th>
-                                <th class="text-right">Seuil</th>
-                                <th>Statut</th>
-                                <th class="text-right">Action</th>
+                                <th class="text-right">Float</th>
+                                <th class="text-right">Seuil float</th>
+                                <th class="text-right">Caisse</th>
+                                <th class="text-right">Seuil caisse</th>
+                                <th>État</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($soldes as $solde): ?>
-                            <tr>
-                                <td class="font-semibold text-slate-800"><?= e($solde['nom_service']) ?></td>
-                                <td><span class="app-badge app-badge-secondary"><?= e($solde['type_solde']) ?></span></td>
-                                <td class="text-right font-medium"><?= e(formatMontant((float)$solde['montant_actuel'])) ?></td>
-                                <td class="text-right text-slate-500">
-                                    <?= $solde['valeur_seuil'] !== null ? e(formatMontant((float)$solde['valeur_seuil'])) : '—' ?>
-                                </td>
-                                <td>
-                                    <span class="app-badge app-badge-<?= e($solde['en_alerte'] ? 'danger' : 'success') ?>">
-                                        <i data-lucide="<?= e($solde['en_alerte'] ? 'alert-circle' : 'check-circle') ?>"></i>
-                                        <?= e($solde['en_alerte'] ? 'Alerte' : 'Normal') ?>
-                                    </span>
-                                </td>
-                                <td class="text-right">
-                                    <a href="<?= url('stocks/' . $solde['id_service']) ?>" class="app-btn app-btn-sm app-btn-secondary">
-                                        <i data-lucide="eye"></i> Détails
-                                    </a>
-                                </td>
-                            </tr>
+                            <?php foreach ($soldesParService as $service): ?>
+                                <?php
+                                    $float = $service['float'];
+                                    $caisse = $service['caisse'];
+                                ?>
+                                <tr>
+                                    <td>
+                                        <div class="service-cell">
+                                            <span class="service-avatar"><?= e($serviceInitials($service['nom_service'])) ?></span>
+                                            <div>
+                                                <strong><?= e($service['nom_service']) ?></strong>
+                                                <small><?= e($service['categorie']) ?></small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-right">
+                                        <?= $float ? e(formatMontant((float)$float['montant_actuel'])) : '—' ?>
+                                        <div class="stock-level-bar"><span style="width: <?= e($stockPercent($float)) ?>%"></span></div>
+                                    </td>
+                                    <td class="text-right"><?= $float && $float['valeur_seuil'] !== null ? e(formatMontant((float)$float['valeur_seuil'])) : 'N/A' ?></td>
+                                    <td class="text-right">
+                                        <?= $caisse ? e(formatMontant((float)$caisse['montant_actuel'])) : '—' ?>
+                                        <div class="stock-level-bar caisse"><span style="width: <?= e($stockPercent($caisse)) ?>%"></span></div>
+                                    </td>
+                                    <td class="text-right"><?= $caisse && $caisse['valeur_seuil'] !== null ? e(formatMontant((float)$caisse['valeur_seuil'])) : 'N/A' ?></td>
+                                    <td><span class="risk-badge <?= $service['en_alerte'] ? 'danger' : 'success' ?>"><?= e($service['en_alerte'] ? 'Alerte' : 'OK') ?></span></td>
+                                </tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
                 </div>
             </div>
-        </div>
+        </article>
 
-        <div class="app-card">
+        <?php if ($canSeeFinance): ?>
+            <article class="app-card commission-card">
+                <div class="app-card-header">
+                    <span><i data-lucide="pie-chart"></i> Répartition des commissions</span>
+                    <span class="app-badge app-badge-secondary">Mois</span>
+                </div>
+                <div class="app-card-body commission-layout">
+                    <div class="donut-wrap">
+                        <canvas id="commissionsChart" data-chart='<?= e(json_encode($chartCommissions)) ?>'></canvas>
+                    </div>
+                    <div class="commission-list">
+                        <?php foreach (array_slice($beneficesParService ?? [], 0, 5) as $index => $benefice): ?>
+                            <?php $share = $totalCommissionsMois > 0 ? round(((float)$benefice['total_commission'] / (float)$totalCommissionsMois) * 100) : 0; ?>
+                            <div>
+                                <span class="legend-dot legend-<?= e($index + 1) ?>"></span>
+                                <strong><?= e($benefice['nom_service']) ?></strong>
+                                <b><?= e($share) ?>%</b>
+                                <small><?= e(formatMontant((float)$benefice['total_commission'])) ?></small>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </article>
+        <?php endif; ?>
+    </section>
+
+    <section class="dashboard-grid-bottom">
+        <?php if ($canSeeFinance): ?>
+            <article class="app-card profit-card">
+                <div class="app-card-header"><span><i data-lucide="landmark"></i> Bénéfices par service</span></div>
+                <div class="app-card-body">
+                    <?php foreach (array_slice($topProfitServices ?? [], 0, 4) as $profit): ?>
+                        <?php $maxProfit = max(1, (float)($topProfitServices[0]['total_commission'] ?? 1)); ?>
+                        <div class="profit-row">
+                            <span><?= e($profit['nom_service']) ?></span>
+                            <strong><?= e(formatMontant((float)$profit['total_commission'])) ?></strong>
+                            <div><span style="width: <?= e((int)round(((float)$profit['total_commission'] / $maxProfit) * 100)) ?>%"></span></div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </article>
+        <?php endif; ?>
+
+        <article class="app-card transactions-card">
             <div class="app-card-header">
-                <span class="flex items-center gap-2"><i data-lucide="history"></i> Dernières transactions</span>
+                <span><i data-lucide="receipt-text"></i> Dernières transactions</span>
+                <a href="<?= url('transactions') ?>">Voir tout</a>
             </div>
             <div class="app-card-body p-0">
                 <div class="overflow-x-auto">
-                    <table class="app-table table-mobile-details min-w-[48rem]">
+                    <table class="app-table table-mobile-details">
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>Date</th>
                                 <th>Service</th>
                                 <th>Type</th>
                                 <th class="text-right">Montant</th>
-                                <th>Agent</th>
+                                <th>Statut</th>
+                                <th>Date</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($dernièresTransactions as $tx): ?>
-                            <tr>
-                                <td class="text-xs text-slate-500">#<?= e($tx['id_transaction']) ?></td>
-                                <td class="text-xs text-slate-500"><?= e(formatDate($tx['date_heure'])) ?></td>
-                                <td class="font-semibold text-slate-800"><?= e($tx['nom_service']) ?></td>
-                                <td><span class="app-badge app-badge-secondary"><?= e($tx['libelle_type']) ?></span></td>
-                                <td class="text-right font-semibold text-success"><?= e(formatMontant((float)$tx['montant'])) ?></td>
-                                <td><?= e($tx['nom_agent']) ?></td>
-                            </tr>
+                                <tr>
+                                    <td class="text-xs text-slate-500">#<?= e($tx['id_transaction']) ?></td>
+                                    <td class="font-semibold text-slate-800"><?= e($tx['nom_service']) ?></td>
+                                    <td><?= e($tx['libelle_type']) ?></td>
+                                    <td class="text-right font-semibold"><?= e(formatMontant((float)$tx['montant'])) ?></td>
+                                    <td><span class="risk-badge success"><?= e(ucfirst(strtolower($tx['statut'] ?? 'validée'))) ?></span></td>
+                                    <td class="text-xs text-slate-500"><?= e(formatDate($tx['date_heure'])) ?></td>
+                                </tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
                 </div>
             </div>
-        </div>
-    </div>
+        </article>
+    </section>
 </div>
 
 <?php endif; ?>

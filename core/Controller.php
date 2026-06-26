@@ -18,6 +18,7 @@ abstract class Controller {
     protected function render(string $view, array $data = [], string $title = ''): void {
         $data['pageTitle'] = $title ?: APP_NAME;
         $data['view']      = $view;
+        $data['sidebarHealth'] = $data['sidebarHealth'] ?? $this->getSidebarHealth();
         extract($data, EXTR_SKIP);
         require_once VIEWS_PATH . '/layouts/header.php';
         require_once VIEWS_PATH . '/layouts/navbar.php';
@@ -28,6 +29,52 @@ abstract class Controller {
         }
         require_once $viewPath;
         require_once VIEWS_PATH . '/layouts/footer.php';
+    }
+
+    private function getSidebarHealth(): array {
+        try {
+            $alerteModel = new AlerteSolde();
+            $soldeModel = new SoldeService();
+            $txModel = new Transaction();
+
+            $nbAlertes = $alerteModel->compterActives();
+            $disponibiliteSoldes = $soldeModel->getDisponibilitePourcentage();
+            $nbTransactionsJour = $txModel->getNbJour();
+
+            $penaliteAlertes = min(40, $nbAlertes * 8);
+            $penaliteSoldes = (int)round((100 - $disponibiliteSoldes) * 0.35);
+            $penaliteActivite = $nbTransactionsJour > 0 ? 0 : 15;
+            $score = max(0, min(100, 100 - $penaliteAlertes - $penaliteSoldes - $penaliteActivite));
+
+            if ($score >= 85) {
+                $statut = 'Stable';
+                $couleur = '#10b981';
+            } elseif ($score >= 65) {
+                $statut = 'Attention';
+                $couleur = '#f59e0b';
+            } else {
+                $statut = 'Critique';
+                $couleur = '#d32f2f';
+            }
+
+            return [
+                'score' => $score,
+                'statut' => $statut,
+                'couleur' => $couleur,
+                'nb_alertes' => $nbAlertes,
+                'disponibilite_soldes' => $disponibiliteSoldes,
+                'nb_transactions_jour' => $nbTransactionsJour,
+            ];
+        } catch (Throwable $e) {
+            return [
+                'score' => 0,
+                'statut' => 'Indisponible',
+                'couleur' => '#64748b',
+                'nb_alertes' => 0,
+                'disponibilite_soldes' => 0,
+                'nb_transactions_jour' => 0,
+            ];
+        }
     }
 
     // Redirection

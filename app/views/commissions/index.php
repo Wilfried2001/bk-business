@@ -1,95 +1,129 @@
-<div class="flex justify-between items-center mb-4">
-    <div>
-        <h1 class="h3 mb-0"><i data-lucide="percent"></i> Commissions</h1>
-        <p class="text-gray-500">Analyse des commissions par service.</p>
-    </div>
-</div>
-<div class="app-card shadow-sm mb-4">
-    <div class="app-card-header flex justify-between items-center">
+<?php
+    $nbTransactions = 0;
+    $totalBenefice = 0;
+    $totalPerte = 0;
+    foreach ($benefices as $benefice) {
+        $nbTransactions += (int)$benefice['nb_transactions'];
+        $totalBenefice += (float)$benefice['total_benefice'];
+        $totalPerte += (float)$benefice['total_perte'];
+    }
+?>
+
+<div class="bk-page">
+    <section class="bk-head">
         <div>
-            <strong><i data-lucide="filter"></i> Filtrer les commissions</strong>
-            <div class="text-gray-500 small">Sélectionnez une période pour afficher les résultats.</div>
+            <p class="bk-eyebrow">Tableau de bord / Commissions</p>
+            <h1>Commissions</h1>
+            <p>Analyser les commissions, bénéfices et pertes par service.</p>
         </div>
-    </div>
-    <div class="app-card-body">
-        <form method="get" action="<?= url('commissions') ?>" class="flex flex-wrap -mx-3 gap-4 items-end">
-            <div class="md:w-1/4 px-3">
-                <label class="app-label"><i data-lucide="building"></i> Service</label>
-                <select name="service" class="border rounded-md px-3 py-2 text-sm w-full bg-white">
-                    <option value="">Tous</option>
-                    <?php foreach ($services as $service): ?>
-                        <option value="<?= e($service['id_service']) ?>" <?= $service['id_service'] === ($filtres['id_service'] ?? 0) ? 'selected' : '' ?>>
-                            <?= e($service['nom']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="md:w-1/4 px-3">
-                <label class="app-label"><i data-lucide="calendar"></i> Mois</label>
-                <select name="mois" class="border rounded-md px-3 py-2 text-sm w-full bg-white">
-                    <?php foreach ($moisLabels as $key => $label): ?>
-                        <option value="<?= e($key) ?>" <?= $key === (int)$mois ? 'selected' : '' ?>><?= e($label) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="md:w-1/6 px-3">
-                <label class="app-label"><i data-lucide="calendar"></i> Année</label>
-                <input type="number" name="annee" class="border rounded-md px-3 py-2 text-sm w-full" value="<?= e($annee) ?>" min="2020">
-            </div>
-            <div class="md:w-1/6 px-3">
-                <button type="submit" class="inline-flex items-center font-semibold px-4 py-2 rounded-md text-sm tracking-wide bg-gradient-to-r from-[#0d47a1] to-[#1565c0] text-white w-full">
+    </section>
+
+    <section class="bk-kpis">
+        <article class="bk-kpi">
+            <div class="bk-kpi-icon"><i data-lucide="badge-percent"></i></div>
+            <p>Commissions totales</p>
+            <strong><?= e(formatMontant((float)$total)) ?></strong>
+            <span>Période filtrée</span>
+        </article>
+        <article class="bk-kpi green">
+            <div class="bk-kpi-icon"><i data-lucide="trending-up"></i></div>
+            <p>Bénéfices</p>
+            <strong><?= e(formatMontant($totalBenefice)) ?></strong>
+            <span>Résultat positif</span>
+        </article>
+        <article class="bk-kpi red">
+            <div class="bk-kpi-icon"><i data-lucide="trending-down"></i></div>
+            <p>Pertes</p>
+            <strong><?= e(formatMontant($totalPerte)) ?></strong>
+            <span>Résultat négatif</span>
+        </article>
+        <article class="bk-kpi sky">
+            <div class="bk-kpi-icon"><i data-lucide="receipt-text"></i></div>
+            <p>Transactions rémunérées</p>
+            <strong><?= e($nbTransactions) ?></strong>
+            <span>Opérations</span>
+        </article>
+    </section>
+
+    <section class="app-card">
+        <div class="app-card-header">
+            <span><i data-lucide="filter"></i> Filtres</span>
+        </div>
+        <div class="app-card-body">
+            <form method="get" action="<?= url('commissions') ?>" class="bk-filter">
+                <div>
+                    <label class="bk-label">Service</label>
+                    <select name="service" class="bk-select">
+                        <option value="">Tous les services</option>
+                        <?php foreach ($services as $service): ?>
+                            <option value="<?= e($service['id_service']) ?>" <?= $service['id_service'] === ($filtres['id_service'] ?? 0) ? 'selected' : '' ?>>
+                                <?= e($service['nom']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div>
+                    <label class="bk-label">Mois</label>
+                    <select name="mois" class="bk-select">
+                        <?php foreach ($moisLabels as $key => $label): ?>
+                            <option value="<?= e($key) ?>" <?= $key === (int)$mois ? 'selected' : '' ?>><?= e($label) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div>
+                    <label class="bk-label">Année</label>
+                    <input type="number" name="annee" class="bk-field" value="<?= e($annee) ?>" min="2020">
+                </div>
+                <button type="submit" class="bk-btn bk-btn-primary">
                     <i data-lucide="filter"></i> Filtrer
                 </button>
-            </div>
-            <div class="md:w-1/6 px-3">
-                <a href="<?= url('commissions') ?>" class="inline-flex items-center font-semibold px-4 py-2 rounded-md text-sm tracking-wide border border-gray-300 text-gray-700 bg-transparent hover:bg-gray-50 w-full">
+                <a href="<?= url('commissions') ?>" class="bk-btn bk-btn-secondary">
                     <i data-lucide="rotate-ccw"></i> Réinitialiser
                 </a>
-            </div>
-            <div class="w-full px-3 text-right mt-2">
-                <div class="fw-semibold text-success fs-5">
-                    <i data-lucide="dollar-sign"></i> Total : <?= e(formatMontant((float)$total)) ?>
+            </form>
+        </div>
+    </section>
+
+    <section class="app-card">
+        <div class="app-card-header">
+            <span><i data-lucide="table"></i> Commissions par service</span>
+            <span class="app-badge app-badge-secondary"><?= e(count($benefices)) ?> lignes</span>
+        </div>
+        <div class="app-card-body p-0">
+            <?php if (empty($benefices)): ?>
+                <div class="bk-empty">
+                    <i data-lucide="inbox"></i>
+                    <strong>Aucune commission trouvée</strong>
+                    <span>Changez la période ou le service pour élargir la recherche.</span>
                 </div>
-            </div>
-        </form>
-    </div>
-</div>
-<div class="app-card shadow-sm mb-4">
-    <div class="app-card-header">
-        <i data-lucide="table"></i> Détails des commissions
-    </div>
-    <div class="app-card-body">
-        <?php if (empty($benefices)): ?>
-            <p class="mb-0">Aucune donnée de commission trouvée.</p>
-        <?php else: ?>
-            <div class="overflow-x-auto">
-            <table class="app-table table-mobile-details">
-                <thead>
-                    <tr>
-                        <th>Service</th>
-                        <th class="hidden md:table-cell">Catégorie</th>
-                        <th>Transactions</th>
-                        <th>Commission totale</th>
-                        <th>Bénéfice</th>
-                        <th>Perte</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($benefices as $benefice): ?>
-                        <tr>
-                            <td><span class="truncate" title="<?= e($benefice['nom_service']) ?>" data-toggle="tooltip"><?= e($benefice['nom_service']) ?></span></td>
-                            <td class="hidden md:table-cell"><span class="truncate" title="<?= e($benefice['categorie']) ?>" data-toggle="tooltip"><?= e($benefice['categorie']) ?></span></td>
-                            <td><span class="truncate" title="<?= e($benefice['nb_transactions']) ?>" data-toggle="tooltip"><?= e($benefice['nb_transactions']) ?></span></td>
-                            <td><span class="truncate" title="<?= e(formatMontant((float)$benefice['total_commission'])) ?>" data-toggle="tooltip"><?= e(formatMontant((float)$benefice['total_commission'])) ?></span></td>
-                            <td><span class="truncate" title="<?= e(formatMontant((float)$benefice['total_benefice'])) ?>" data-toggle="tooltip"><?= e(formatMontant((float)$benefice['total_benefice'])) ?></span></td>
-                            <td><span class="truncate" title="<?= e(formatMontant((float)$benefice['total_perte'])) ?>" data-toggle="tooltip"><?= e(formatMontant((float)$benefice['total_perte'])) ?></span></td>
-                            <td></td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-            </div>
-        <?php endif; ?>
-    </div>
+            <?php else: ?>
+                <div class="overflow-x-auto">
+                    <table class="app-table table-mobile-details bk-table-min">
+                        <thead>
+                            <tr>
+                                <th>Service</th>
+                                <th class="hidden md:table-cell">Catégorie</th>
+                                <th class="text-right">Transactions</th>
+                                <th class="text-right">Commission</th>
+                                <th class="text-right">Bénéfice</th>
+                                <th class="text-right">Perte</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($benefices as $benefice): ?>
+                                <tr>
+                                    <td class="font-semibold text-slate-800"><?= e($benefice['nom_service']) ?></td>
+                                    <td class="hidden md:table-cell"><?= e($benefice['categorie']) ?></td>
+                                    <td class="text-right"><?= e($benefice['nb_transactions']) ?></td>
+                                    <td class="text-right font-semibold"><?= e(formatMontant((float)$benefice['total_commission'])) ?></td>
+                                    <td class="text-right"><?= e(formatMontant((float)$benefice['total_benefice'])) ?></td>
+                                    <td class="text-right"><?= e(formatMontant((float)$benefice['total_perte'])) ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+        </div>
+    </section>
 </div>

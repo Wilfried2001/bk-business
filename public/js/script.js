@@ -291,6 +291,10 @@ function initDashboardCharts() {
   if (typeof Chart === "undefined") return;
 
   try {
+    const gridColor = "rgba(148, 163, 184, 0.18)";
+    const tickColor = "#64748b";
+    const moneyTooltip = (value) => formatMoney(Number(value || 0));
+
     const txCanvas = document.getElementById("transactionsChart");
     if (txCanvas) {
       const cfg = JSON.parse(txCanvas.getAttribute("data-chart") || "{}");
@@ -302,9 +306,13 @@ function initDashboardCharts() {
             {
               label: "Transactions",
               data: cfg.data || [],
-              borderColor: "#0d6efd",
-              backgroundColor: "rgba(13,110,253,0.08)",
-              tension: 0.25,
+              borderColor: "#4f46e5",
+              backgroundColor: "rgba(79, 70, 229, 0.09)",
+              pointBackgroundColor: "#4f46e5",
+              pointBorderColor: "#ffffff",
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              tension: 0.35,
               fill: true,
             },
           ],
@@ -312,7 +320,71 @@ function initDashboardCharts() {
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          interaction: { mode: "index", intersect: false },
           plugins: { legend: { display: false } },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: tickColor, maxTicksLimit: 6 },
+            },
+            y: {
+              beginAtZero: true,
+              grid: { color: gridColor },
+              ticks: { color: tickColor, precision: 0 },
+            },
+          },
+        },
+      });
+    }
+
+    const commDailyCanvas = document.getElementById("commissionsDailyChart");
+    if (commDailyCanvas) {
+      const cfg = JSON.parse(commDailyCanvas.getAttribute("data-chart") || "{}");
+      new Chart(commDailyCanvas, {
+        type: "line",
+        data: {
+          labels: cfg.labels || [],
+          datasets: [
+            {
+              label: "Commissions",
+              data: cfg.data || [],
+              borderColor: "#059669",
+              backgroundColor: "rgba(5, 150, 105, 0.1)",
+              pointBackgroundColor: "#059669",
+              pointBorderColor: "#ffffff",
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              tension: 0.35,
+              fill: true,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: "index", intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (context) => ` ${moneyTooltip(context.raw)}`,
+              },
+            },
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: tickColor, maxTicksLimit: 6 },
+            },
+            y: {
+              beginAtZero: true,
+              grid: { color: gridColor },
+              ticks: {
+                color: tickColor,
+                callback: (value) => `${Math.round(Number(value) / 1000)}K`,
+              },
+            },
+          },
         },
       });
     }
@@ -328,18 +400,36 @@ function initDashboardCharts() {
             {
               data: cfg.data || [],
               backgroundColor: [
-                "#0d6efd",
-                "#198754",
-                "#ffc107",
-                "#dc3545",
-                "#6610f2",
-                "#0dcaf0",
-                "#fd7e14",
+                "#f97316",
+                "#fbbf24",
+                "#3b82f6",
+                "#10b981",
+                "#8b5cf6",
+                "#06b6d4",
+                "#ef4444",
               ],
+              borderColor: "#ffffff",
+              borderWidth: 3,
+              hoverOffset: 5,
             },
           ],
         },
-        options: { responsive: true, maintainAspectRatio: false },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: "68%",
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (context) => {
+                  const label = context.label || "Service";
+                  return ` ${label}: ${moneyTooltip(context.raw)}`;
+                },
+              },
+            },
+          },
+        },
       });
     }
   } catch (e) {

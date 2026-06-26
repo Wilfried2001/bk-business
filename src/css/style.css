@@ -8,7 +8,7 @@
   }
 
   body {
-    @apply min-h-screen bg-slate-100 font-sans text-slate-800 antialiased;
+    @apply min-h-screen bg-[#f6f8fb] font-sans text-slate-800 antialiased;
   }
 
   a {
@@ -18,19 +18,19 @@
 
 @layer components {
   .app-topbar {
-    @apply fixed inset-x-0 top-0 z-50 flex h-16 items-center bg-gradient-to-r from-primary to-secondary px-4 text-white shadow-lg shadow-primary/20;
+    @apply fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 text-slate-700 shadow-sm backdrop-blur lg:left-64;
   }
 
   .app-brand {
-    @apply inline-flex items-center gap-2 text-lg font-bold text-white;
+    @apply inline-flex items-center gap-2 text-lg font-bold text-slate-950;
   }
 
   .app-shell {
-    @apply min-h-screen pt-16;
+    @apply min-h-screen;
   }
 
   .app-sidebar {
-    @apply fixed bottom-0 left-0 top-16 z-40 w-64 -translate-x-full overflow-y-auto border-r border-slate-200 bg-white shadow-xl transition-transform duration-300 lg:translate-x-0;
+    @apply fixed bottom-0 left-0 top-0 z-50 flex w-64 -translate-x-full flex-col overflow-y-auto border-r border-slate-200 bg-white shadow-xl transition-transform duration-300 lg:translate-x-0;
   }
 
   .app-sidebar.show {
@@ -46,27 +46,27 @@
   }
 
   .app-main {
-    @apply min-h-[calc(100vh-4rem)] p-4 sm:p-6 lg:ml-64 lg:p-8;
+    @apply min-h-[calc(100vh-4rem)] p-4 pt-20 sm:p-6 sm:pt-24 lg:ml-64 lg:p-7 lg:pt-24;
   }
 
   .app-footer {
-    @apply bg-gradient-to-r from-primary to-secondary px-4 py-5 text-sm text-white lg:ml-64;
+    @apply border-t border-slate-200 bg-white px-4 py-5 text-sm text-slate-500 lg:ml-64;
   }
 
   .app-nav-link {
-    @apply mx-3 my-1 flex items-center gap-2 rounded-md border-l-4 border-transparent px-4 py-3 text-sm font-medium text-slate-600 hover:border-accent hover:bg-primary/5 hover:text-primary;
+    @apply mx-3 flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-semibold text-slate-600 hover:bg-indigo-50 hover:text-indigo-700;
   }
 
   .app-nav-link.active {
-    @apply border-accent bg-gradient-to-r from-primary to-secondary text-white;
+    @apply bg-indigo-50 text-indigo-700 ring-1 ring-indigo-100;
   }
 
   .app-card {
-    @apply overflow-hidden rounded-lg border border-slate-200 bg-white shadow-card;
+    @apply overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm;
   }
 
   .app-card-header {
-    @apply flex items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-5 py-4 font-semibold text-slate-900;
+    @apply flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-5 py-4 font-semibold text-slate-950;
   }
 
   .app-card-body {
@@ -74,7 +74,7 @@
   }
 
   .app-stat-card {
-    @apply rounded-lg border border-slate-200 border-l-4 bg-white p-5 shadow-card;
+    @apply rounded-lg border border-slate-200 border-l-4 bg-white p-5 shadow-sm;
   }
 
   .app-stat-card.primary {
@@ -94,7 +94,7 @@
   }
 
   .app-btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-semibold tracking-wide transition hover:-translate-y-0.5 disabled:pointer-events-none disabled:opacity-60;
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition disabled:pointer-events-none disabled:opacity-60;
   }
 
   .app-icon,
@@ -122,7 +122,7 @@
   }
 
   .app-btn-primary {
-    @apply bg-gradient-to-r from-primary to-secondary text-white shadow-sm shadow-primary/20 hover:shadow-md;
+    @apply bg-slate-950 text-white shadow-sm hover:bg-slate-800;
   }
 
   .app-btn-secondary {
@@ -166,7 +166,7 @@
   }
 
   .app-table thead {
-    @apply bg-primary/5 text-xs uppercase tracking-wide text-primary;
+    @apply bg-slate-50 text-xs uppercase tracking-wide text-slate-500;
   }
 
   .app-table th,
@@ -175,7 +175,7 @@
   }
 
   .app-table tbody tr {
-    @apply hover:bg-primary/5;
+    @apply hover:bg-slate-50;
   }
 
   .app-table-compact th,
@@ -294,6 +294,383 @@
 
   .app-input-group .app-field {
     @apply flex-1;
+  }
+
+  .topbar-left,
+  .topbar-right {
+    @apply flex items-center gap-3;
+  }
+
+  .topbar-left {
+    @apply min-w-0 flex-1;
+  }
+
+  .topbar-right {
+    @apply justify-end;
+  }
+
+  .icon-btn {
+    @apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 hover:text-slate-950;
+  }
+
+  .topbar-search {
+    @apply hidden h-10 w-full max-w-sm items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-slate-400 shadow-sm md:flex;
+  }
+
+  .topbar-search input {
+    @apply h-full min-w-0 flex-1 bg-transparent text-sm text-slate-700 outline-none;
+  }
+
+  .topbar-date {
+    @apply hidden items-center gap-2 text-sm font-medium text-slate-500 md:inline-flex;
+  }
+
+  .topbar-action {
+    @apply hidden sm:inline-flex;
+  }
+
+  .notification-dot {
+    @apply relative;
+  }
+
+  .notification-dot:after {
+    content: "";
+    @apply absolute right-2 top-2 h-2 w-2 rounded-full bg-danger ring-2 ring-white;
+  }
+
+  .user-menu {
+    @apply inline-flex items-center gap-2 rounded-md px-1.5 py-1 text-sm font-semibold text-slate-700 hover:bg-slate-50;
+  }
+
+  .user-menu span,
+  .brand-mark span {
+    @apply inline-flex h-9 w-9 items-center justify-center rounded-md bg-indigo-950 text-sm font-bold text-white;
+  }
+
+  .user-menu strong {
+    @apply hidden sm:inline;
+  }
+
+  .sidebar-brand {
+    @apply mb-6 flex items-center justify-between px-4;
+  }
+
+  .brand-mark {
+    @apply inline-flex items-center gap-3 text-sm font-bold text-slate-950;
+  }
+
+  .sidebar-nav {
+    @apply flex-1 space-y-6;
+  }
+
+  .nav-group p {
+    @apply mb-2 px-5 text-[0.68rem] font-bold uppercase tracking-wide text-slate-400;
+  }
+
+  .network-health {
+    @apply mx-4 mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4;
+  }
+
+  .network-health strong,
+  .network-health span {
+    @apply block;
+  }
+
+  .network-health strong {
+    @apply text-sm text-slate-950;
+  }
+
+  .network-health span {
+    @apply mt-1 text-xs text-slate-500;
+  }
+
+  .network-health b {
+    @apply mt-4 block text-3xl text-slate-950;
+  }
+
+  .health-bar,
+  .objective-bar,
+  .stock-level-bar,
+  .profit-row div {
+    @apply mt-2 h-2 overflow-hidden rounded-full bg-slate-100;
+  }
+
+  .health-bar span,
+  .objective-bar span,
+  .stock-level-bar span,
+  .profit-row div span {
+    @apply block h-full rounded-full bg-emerald-500;
+  }
+
+  .business-dashboard {
+    @apply space-y-5;
+  }
+
+  .dashboard-head {
+    @apply flex flex-col gap-4 md:flex-row md:items-end md:justify-between;
+  }
+
+  .dashboard-eyebrow {
+    @apply mb-1 text-xs font-bold uppercase tracking-wide text-indigo-700;
+  }
+
+  .dashboard-head h1 {
+    @apply text-2xl font-bold text-slate-950 md:text-3xl;
+  }
+
+  .dashboard-head p:not(.dashboard-eyebrow) {
+    @apply mt-1 text-sm text-slate-500;
+  }
+
+  .dashboard-actions {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  .date-pill {
+    @apply inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-500;
+  }
+
+  .kpi-grid {
+    @apply grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5;
+  }
+
+  .business-kpi-card {
+    @apply relative overflow-hidden rounded-lg border border-slate-200 bg-white p-5 shadow-sm;
+  }
+
+  .business-kpi-card:before {
+    content: "";
+    @apply absolute inset-x-0 top-0 h-1 bg-slate-300;
+  }
+
+  .business-kpi-card p {
+    @apply mt-4 text-sm font-semibold text-slate-500;
+  }
+
+  .business-kpi-card strong {
+    @apply mt-2 block text-2xl font-bold text-slate-950;
+  }
+
+  .business-kpi-card > span {
+    @apply mt-3 inline-flex text-xs font-semibold text-slate-500;
+  }
+
+  .kpi-icon {
+    @apply inline-flex h-11 w-11 items-center justify-center rounded-md;
+  }
+
+  .accent-transactions:before,
+  .accent-transactions .kpi-icon {
+    @apply bg-indigo-600 text-white;
+  }
+
+  .accent-volume:before,
+  .accent-volume .kpi-icon {
+    @apply bg-emerald-600 text-white;
+  }
+
+  .accent-alert:before,
+  .accent-alert .kpi-icon {
+    @apply bg-amber-500 text-white;
+  }
+
+  .accent-commission:before,
+  .accent-commission .kpi-icon {
+    @apply bg-sky-600 text-white;
+  }
+
+  .accent-margin:before,
+  .accent-margin .kpi-icon {
+    @apply bg-violet-600 text-white;
+  }
+
+  .money-trend.up {
+    @apply text-emerald-700;
+  }
+
+  .money-trend.down {
+    @apply text-danger;
+  }
+
+  .money-trend.neutral {
+    @apply text-slate-500;
+  }
+
+  .risk-badge {
+    @apply inline-flex items-center rounded-md px-2 py-1 text-xs font-bold;
+  }
+
+  .risk-badge.success {
+    @apply bg-emerald-50 text-emerald-700;
+  }
+
+  .risk-badge.danger {
+    @apply bg-red-50 text-danger;
+  }
+
+  .dashboard-grid-main {
+    @apply grid grid-cols-1 gap-4 xl:grid-cols-[1fr_1fr_20rem];
+  }
+
+  .dashboard-grid-secondary {
+    @apply grid grid-cols-1 gap-4 xl:grid-cols-[1.35fr_1fr];
+  }
+
+  .dashboard-grid-bottom {
+    @apply grid grid-cols-1 gap-4 xl:grid-cols-[0.8fr_1.5fr];
+  }
+
+  .chart-card .app-card-body {
+    @apply h-72;
+  }
+
+  .app-card-header span {
+    @apply inline-flex items-center gap-2;
+  }
+
+  .app-card-header a {
+    @apply text-sm font-semibold text-indigo-700 hover:text-indigo-900;
+  }
+
+  .alert-list {
+    @apply space-y-3;
+  }
+
+  .alert-card {
+    @apply flex items-start justify-between gap-3 rounded-lg border p-3;
+  }
+
+  .alert-card.critique {
+    @apply border-red-200 bg-red-50;
+  }
+
+  .alert-card.attention {
+    @apply border-amber-200 bg-amber-50;
+  }
+
+  .alert-card strong,
+  .alert-card span,
+  .alert-card small {
+    @apply block;
+  }
+
+  .alert-card strong {
+    @apply text-sm text-slate-950;
+  }
+
+  .alert-card span {
+    @apply mt-1 text-xs text-slate-600;
+  }
+
+  .alert-card small {
+    @apply mt-1 text-xs font-semibold text-slate-500;
+  }
+
+  .alert-card a {
+    @apply inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-white text-slate-700 shadow-sm;
+  }
+
+  .service-balance-table {
+    @apply min-w-[56rem];
+  }
+
+  .service-cell {
+    @apply flex items-center gap-3;
+  }
+
+  .service-avatar {
+    @apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-slate-100 text-xs font-bold text-slate-700;
+  }
+
+  .service-cell strong,
+  .service-cell small {
+    @apply block;
+  }
+
+  .service-cell small {
+    @apply text-xs text-slate-500;
+  }
+
+  .stock-level-bar span {
+    @apply bg-indigo-500;
+  }
+
+  .stock-level-bar.caisse span {
+    @apply bg-amber-500;
+  }
+
+  .table-actions {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  .commission-layout {
+    @apply grid gap-4 md:grid-cols-[12rem_1fr];
+  }
+
+  .donut-wrap {
+    @apply h-52;
+  }
+
+  .commission-list {
+    @apply space-y-3;
+  }
+
+  .commission-list div {
+    @apply grid grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-1 text-sm;
+  }
+
+  .commission-list small {
+    @apply col-start-2 text-xs text-slate-500;
+  }
+
+  .legend-dot {
+    @apply h-3 w-3 rounded-full;
+  }
+
+  .legend-1 { @apply bg-orange-500; }
+  .legend-2 { @apply bg-amber-400; }
+  .legend-3 { @apply bg-blue-500; }
+  .legend-4 { @apply bg-emerald-500; }
+  .legend-5 { @apply bg-violet-500; }
+
+  .profit-row {
+    @apply mb-4 grid grid-cols-[1fr_auto] items-center gap-2 text-sm;
+  }
+
+  .profit-row span {
+    @apply font-semibold text-slate-700;
+  }
+
+  .profit-row strong {
+    @apply text-slate-950;
+  }
+
+  .profit-row div {
+    @apply col-span-2 mt-0;
+  }
+
+  .empty-state.compact {
+    @apply flex items-center gap-2 rounded-lg bg-slate-50 p-4 text-sm font-medium text-slate-500;
+  }
+
+  .service-focus-card .app-card-body {
+    @apply space-y-3;
+  }
+
+  .service-focus-row {
+    @apply grid grid-cols-[1fr_auto] gap-x-3 rounded-lg border border-slate-100 bg-slate-50 p-3 text-sm;
+  }
+
+  .service-focus-row span {
+    @apply font-semibold text-slate-800;
+  }
+
+  .service-focus-row strong {
+    @apply text-slate-950;
+  }
+
+  .service-focus-row small {
+    @apply col-span-2 text-xs text-slate-500;
   }
 }
 

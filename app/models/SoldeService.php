@@ -42,6 +42,29 @@ class SoldeService extends Model {
         ");
     }
 
+// Méthode getDisponibilitePourcentage : part des soldes actifs disponibles.
+    public function getDisponibilitePourcentage(): int {
+        $result = $this->queryOne("
+            SELECT
+                (SELECT COUNT(*) * 2 FROM service WHERE actif = 1) AS total_soldes,
+                (
+                    SELECT COUNT(*)
+                    FROM solde_service ss
+                    JOIN service s ON s.id_service = ss.id_service
+                    WHERE s.actif = 1
+                      AND ss.montant_actuel > 0
+                ) AS soldes_disponibles
+        ");
+
+        $total = (int)($result['total_soldes'] ?? 0);
+        if ($total === 0) {
+            return 0;
+        }
+
+        $disponibles = (int)($result['soldes_disponibles'] ?? 0);
+        return (int)round(($disponibles / $total) * 100);
+    }
+
 // Méthode mettreAJour : gère mettreAJour. 
     public function mettreAJour(int $idSolde, float $variation, string $nature): array {
         // Récupérer le solde actuel

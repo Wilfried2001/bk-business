@@ -1,97 +1,104 @@
-<div class="flex justify-between items-center mb-4">
-    <div>
-        <h1 class="h3 mb-0"><i data-lucide="receipt"></i> Transaction #<?= e($transaction['id_transaction']) ?></h1>
-        <p class="text-gray-500">Détail de la transaction.</p>
-    </div>
-    <?php if ($transaction['statut'] !== 'ANNULEE' && Auth::hasRole(['SUPERVISEUR', 'DG'])): ?>
-        <div class="flex gap-2">
-            <a href="<?= url('transactions/' . $transaction['id_transaction'] . '/edit') ?>" class="inline-flex items-center font-semibold px-4 py-2 rounded-md text-sm tracking-wide border border-[#0d47a1] text-[#0d47a1] bg-transparent hover:bg-[#eef4ff]">
-                <i data-lucide="edit-2"></i> Modifier
+<div class="bk-page">
+    <section class="bk-head">
+        <div>
+            <p class="bk-eyebrow">Tableau de bord / Transactions / Détail</p>
+            <h1>Transaction #<?= e($transaction['id_transaction']) ?></h1>
+            <p>Détail de l'opération et mouvements de solde associés.</p>
+        </div>
+        <div class="bk-actions">
+            <a href="<?= url('transactions') ?>" class="bk-btn bk-btn-secondary">
+                <i data-lucide="arrow-left"></i> Retour
             </a>
-            <form action="<?= url('transactions/' . $transaction['id_transaction'] . '/cancel') ?>" method="post">
-                <?= csrfField() ?>
-                <button type="submit" class="inline-flex items-center font-semibold px-4 py-2 rounded-md text-sm tracking-wide bg-red-600 text-white">
-                    <i data-lucide="x-circle"></i> Annuler
-                </button>
-            </form>
+            <?php if ($transaction['statut'] !== 'ANNULEE' && Auth::hasRole(['SUPERVISEUR', 'DG'])): ?>
+                <a href="<?= url('transactions/' . $transaction['id_transaction'] . '/edit') ?>" class="bk-btn bk-btn-secondary">
+                    <i data-lucide="edit-2"></i> Modifier
+                </a>
+                <form action="<?= url('transactions/' . $transaction['id_transaction'] . '/cancel') ?>" method="post">
+                    <?= csrfField() ?>
+                    <button type="submit" class="bk-btn bk-btn-danger">
+                        <i data-lucide="x-circle"></i> Annuler
+                    </button>
+                </form>
+            <?php endif; ?>
         </div>
-    <?php endif; ?>
-</div>
-<div class="flex flex-wrap -mx-3 gy-4">
-    <div class="lg:w-1/2 px-3">
-        <div class="app-card shadow-sm mb-4">
-            <div class="app-card-header">
-                <i data-lucide="info"></i> Informations
-            </div>
-            <div class="app-card-body">
-                <dl class="flex flex-wrap -mx-3 mb-0">
-                    <dt class="sm:w-5/12 px-3 font-semibold text-slate-600">Service</dt>
-                    <dd class="sm:w-7/12 px-3"><?= e($transaction['nom_service']) ?></dd>
-                    <dt class="sm:w-5/12 px-3 font-semibold text-slate-600">Type</dt>
-                    <dd class="sm:w-7/12 px-3"><?= e($transaction['libelle_type']) ?></dd>
-                    <dt class="sm:w-5/12 px-3 font-semibold text-slate-600">Montant</dt>
-                    <dd class="sm:w-7/12 px-3"><?= e(formatMontant((float)$transaction['montant'])) ?></dd>
-                    <dt class="sm:w-5/12 px-3 font-semibold text-slate-600">Agent</dt>
-                    <dd class="sm:w-7/12 px-3"><?= e($transaction['nom_agent']) ?></dd>
-                    <dt class="sm:w-5/12 px-3 font-semibold text-slate-600">Agence</dt>
-                    <dd class="sm:w-7/12 px-3"><?= e($transaction['nom_agence'] ?? $transaction['agence'] ?? '-') ?></dd>
-                    <dt class="sm:w-5/12 px-3 font-semibold text-slate-600">Date</dt>
-                    <dd class="sm:w-7/12 px-3"><?= e(formatDate($transaction['date_heure'])) ?></dd>
-                    <dt class="sm:w-5/12 px-3 font-semibold text-slate-600">Statut</dt>
-                    <dd class="sm:w-7/12 px-3"><?= e($transaction['statut']) ?></dd>
-                    <dt class="sm:w-5/12 px-3 font-semibold text-slate-600">Référence</dt>
-                    <dd class="sm:w-7/12 px-3"><?= e($transaction['reference'] ?: '-') ?></dd>
-                </dl>
-            </div>
+    </section>
+
+    <section class="bk-kpis">
+        <article class="bk-kpi">
+            <div class="bk-kpi-icon"><i data-lucide="radio-tower"></i></div>
+            <p>Service</p>
+            <strong><?= e($transaction['nom_service']) ?></strong>
+            <span><?= e($transaction['libelle_type']) ?></span>
+        </article>
+        <article class="bk-kpi green">
+            <div class="bk-kpi-icon"><i data-lucide="banknote"></i></div>
+            <p>Montant</p>
+            <strong><?= e(formatMontant((float)$transaction['montant'])) ?></strong>
+            <span><?= e($transaction['reference'] ?: 'Sans référence') ?></span>
+        </article>
+        <article class="bk-kpi sky">
+            <div class="bk-kpi-icon"><i data-lucide="user"></i></div>
+            <p>Agent</p>
+            <strong><?= e($transaction['nom_agent']) ?></strong>
+            <span><?= e($transaction['nom_agence'] ?? $transaction['agence'] ?? '-') ?></span>
+        </article>
+        <article class="bk-kpi amber">
+            <div class="bk-kpi-icon"><i data-lucide="calendar"></i></div>
+            <p>Date</p>
+            <strong><?= e(formatDate($transaction['date_heure'])) ?></strong>
+            <span><?= e($transaction['statut']) ?></span>
+        </article>
+    </section>
+
+    <section class="app-card">
+        <div class="app-card-header"><span><i data-lucide="message-square"></i> Note</span></div>
+        <div class="app-card-body">
+            <p><?= nl2br(e($transaction['note'] ?: 'Aucune note.')) ?></p>
         </div>
-    </div>
-    <div class="lg:w-1/2 px-3">
-        <div class="app-card shadow-sm mb-4">
-            <div class="app-card-header">
-                <i data-lucide="message-square"></i> Note
-            </div>
-            <div class="app-card-body">
-                <p class="mb-0"><?= nl2br(e($transaction['note'] ?: 'Aucune note.')) ?></p>
-            </div>
+    </section>
+
+    <section class="app-card">
+        <div class="app-card-header">
+            <span><i data-lucide="activity"></i> Mouvements de solde</span>
+            <span class="app-badge app-badge-secondary"><?= e(count($mouvements)) ?> lignes</span>
         </div>
-    </div>
-</div>
-<div class="app-card shadow-sm mb-4">
-    <div class="app-card-header">
-        <i data-lucide="activity"></i> Mouvements de solde
-    </div>
-    <div class="app-card-body">
-        <?php if (empty($mouvements)): ?>
-            <p class="mb-0">Aucun mouvement enregistré.</p>
-        <?php else: ?>
-            <div class="overflow-x-auto">
-                <table class="app-table">
-                    <thead>
-                        <tr>
-                            <th>Type solde</th>
-                            <th>Nature</th>
-                            <th>Montant</th>
-                            <th>Solde avant</th>
-                            <th>Solde après</th>
-                            <th>Date</th>
-                            <th>Motif</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($mouvements as $mvt): ?>
+        <div class="app-card-body p-0">
+            <?php if (empty($mouvements)): ?>
+                <div class="bk-empty">
+                    <i data-lucide="inbox"></i>
+                    <strong>Aucun mouvement enregistré</strong>
+                    <span>Cette transaction n'a pas généré d'historique de solde.</span>
+                </div>
+            <?php else: ?>
+                <div class="overflow-x-auto">
+                    <table class="app-table bk-table-min">
+                        <thead>
                             <tr>
-                                <td><?= e($mvt['type_solde']) ?></td>
-                                <td><?= e($mvt['nature']) ?></td>
-                                <td><?= e(formatMontant((float)$mvt['montant'])) ?></td>
-                                <td><?= e(formatMontant((float)$mvt['solde_avant'])) ?></td>
-                                <td><?= e(formatMontant((float)$mvt['solde_apres'])) ?></td>
-                                <td><?= e(formatDate($mvt['date_heure'])) ?></td>
-                                <td><?= e($mvt['motif'] ?: '-') ?></td>
+                                <th>Type solde</th>
+                                <th>Nature</th>
+                                <th class="text-right">Montant</th>
+                                <th class="text-right">Solde avant</th>
+                                <th class="text-right">Solde après</th>
+                                <th>Date</th>
+                                <th>Motif</th>
                             </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        <?php endif; ?>
-    </div>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($mouvements as $mvt): ?>
+                                <tr>
+                                    <td><?= e($mvt['type_solde']) ?></td>
+                                    <td><span class="bk-status neutral"><?= e($mvt['nature']) ?></span></td>
+                                    <td class="text-right"><?= e(formatMontant((float)$mvt['montant'])) ?></td>
+                                    <td class="text-right"><?= e(formatMontant((float)$mvt['solde_avant'])) ?></td>
+                                    <td class="text-right"><?= e(formatMontant((float)$mvt['solde_apres'])) ?></td>
+                                    <td><?= e(formatDate($mvt['date_heure'])) ?></td>
+                                    <td><?= e($mvt['motif'] ?: '-') ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+        </div>
+    </section>
 </div>

@@ -40,13 +40,23 @@ class TransactionController extends Controller {
         Auth::requireRole(['AGENT', 'SUPERVISEUR', 'DG']);
         require_once APP_PATH . '/models/Service.php';
         require_once APP_PATH . '/models/TypeOperation.php';
+        require_once APP_PATH . '/models/Agence.php';
 
         $serviceModel = new Service();
         $typeModel    = new TypeOperation();
+        $agenceModel  = new Agence();
+        $services     = $serviceModel->getAllActifs();
+        $typesByService = [];
+
+        foreach ($services as $service) {
+            $typesByService[(int)$service['id_service']] = $typeModel->getByService((int)$service['id_service']);
+        }
 
         $this->render('transactions/create', [
-            'services'        => $serviceModel->getAllActifs(),
+            'services'        => $services,
             'typesOperations' => $typeModel->all(),
+            'typesByService'  => $typesByService,
+            'agences'         => $agenceModel->getAllActives(),
         ], 'Nouvelle transaction');
     }
 
@@ -60,6 +70,14 @@ class TransactionController extends Controller {
         $montant   = $this->post('montant');
         $reference = $this->post('reference', '');
         $note      = $this->post('note', '');
+        $idAgence  = $this->post('id_agence');
+        $motifTransaction = $this->post('motif_transaction', '');
+        $nomExpediteur = $this->post('nom_expediteur', '');
+        $expediteurIdentifiant = $this->post('expediteur_identifiant', '');
+        $expediteurTelephone = $this->post('expediteur_telephone', '');
+        $nomBeneficiaire = $this->post('nom_beneficiaire', '');
+        $beneficiaireIdentifiant = $this->post('beneficiaire_identifiant', '');
+        $beneficiaireTelephone = $this->post('beneficiaire_telephone', '');
 
         $errors = $this->validate([
             'id_service' => $idService,
@@ -67,12 +85,26 @@ class TransactionController extends Controller {
             'montant'    => $montant,
             'reference'  => $reference,
             'note'       => $note,
+            'motif_transaction' => $motifTransaction,
+            'nom_expediteur' => $nomExpediteur,
+            'expediteur_identifiant' => $expediteurIdentifiant,
+            'expediteur_telephone' => $expediteurTelephone,
+            'nom_beneficiaire' => $nomBeneficiaire,
+            'beneficiaire_identifiant' => $beneficiaireIdentifiant,
+            'beneficiaire_telephone' => $beneficiaireTelephone,
         ], [
             'id_service' => 'required|integer|positive',
             'id_type'    => 'required|integer|positive',
             'montant'    => 'required|numeric|positive',
             'reference'  => 'max_length:255',
             'note'       => 'max_length:1000',
+            'motif_transaction' => 'max_length:255',
+            'nom_expediteur' => 'max_length:255',
+            'expediteur_identifiant' => 'max_length:100',
+            'expediteur_telephone' => 'max_length:50',
+            'nom_beneficiaire' => 'max_length:255',
+            'beneficiaire_identifiant' => 'max_length:100',
+            'beneficiaire_telephone' => 'max_length:50',
         ]);
 
         if ($idService <= 0 || $idType <= 0 || (is_numeric($montant) && (float)$montant <= 0)) {
@@ -87,9 +119,12 @@ class TransactionController extends Controller {
         $idService = (int) $idService;
         $idType    = (int) $idType;
         $montant   = (float) str_replace(',', '.', $montant);
+        $idAgence  = $idAgence !== '' && $idAgence !== null ? (int)$idAgence : null;
 
         // Chargement des modèles
         require_once APP_PATH . '/models/Transaction.php';
+        require_once APP_PATH . '/models/Service.php';
+        require_once APP_PATH . '/models/Agence.php';
         require_once APP_PATH . '/models/TypeOperation.php';
         require_once APP_PATH . '/models/SoldeService.php';
         require_once APP_PATH . '/models/MouvementSolde.php';
@@ -99,6 +134,8 @@ class TransactionController extends Controller {
         require_once APP_PATH . '/models/CommissionTransaction.php';
 
         $txModel      = new Transaction();
+        $serviceModel = new Service();
+        $agenceModel  = new Agence();
         $typeModel    = new TypeOperation();
         $soldeModel   = new SoldeService();
         $mvtModel     = new MouvementSolde();
@@ -110,19 +147,60 @@ class TransactionController extends Controller {
         try {
             $txModel->beginTransaction();
 
+            $service = $serviceModel->find($idService);
+            $agence = $idAgence ? $agenceModel->find($idAgence) : null;
+            $typeOp = $typeModel->find($idType);
+
+            if (!$service || !$typeOp) {
+                throw new RuntimeException('Service ou type d\'opération introuvable.');
+            }
+
+            $isInternational = $this->isInternationalService($service);
+            if ($isInternational) {
+                if (!$idAgence || !$agence) $errors[] = 'Veuillez choisir l\'agence qui effectue la transaction.';
+                if ($motifTransaction === '') $errors[] = 'Veuillez renseigner le motif de la transaction.';
+                if ($nomExpediteur === '' || $expediteurIdentifiant === '' || $expediteurTelephone === '') {
+                    $errors[] = 'Veuillez renseigner les informations complètes de l\'expéditeur.';
+                }
+                if ($nomBeneficiaire === '' || $beneficiaireIdentifiant === '' || $beneficiaireTelephone === '') {
+                    $errors[] = 'Veuillez renseigner les informations complètes du bénéficiaire.';
+                }
+            }
+
+            if (!empty($errors)) {
+                throw new InvalidArgumentException(implode(' ', $errors));
+            }
+
+            $typeMouvement = $this->deduireTypeMouvement($typeOp);
+
             // 1. Insérer la transaction
             $idTransaction = $txModel->create([
                 'id_service' => $idService,
                 'id_type'    => $idType,
                 'id_user'    => Auth::id(),
-                'montant'    => $montant,
+                'agence'     => $agence['nom'] ?? null,
+                'id_agence'  => $idAgence,
                 'reference'  => $reference,
+                'nom_expediteur' => $nomExpediteur ?: null,
+                'expediteur_identifiant' => $expediteurIdentifiant ?: null,
+                'expediteur_telephone' => $expediteurTelephone ?: null,
+                'nom_benefis' => $nomBeneficiaire ?: null,
+                'beneficiaire_identifiant' => $beneficiaireIdentifiant ?: null,
+                'beneficiaire_telephone' => $beneficiaireTelephone ?: null,
+                'code_operation' => $reference ?: null,
+                'nature_operation' => $typeOp['libelle'],
+                'produit' => $service['nom'],
+                'type_de_operation' => $typeOp['libelle'],
+                'montant'    => $montant,
+                'motif_transaction' => $motifTransaction ?: null,
+                'nature_transaction' => 'FINANCIER',
+                'type_mouvement' => $typeMouvement,
+                'affecte_stock' => !empty($typeOp['impact_float']) ? 1 : 0,
+                'affecte_caisse' => !empty($typeOp['impact_caisse']) ? 1 : 0,
+                'notes' => $note ?: null,
                 'note'       => $note,
                 'statut'     => 'VALIDEE',
             ]);
-
-            // 2. Récupérer les impacts du type d'opération
-            $typeOp = $typeModel->find($idType);
 
             // 3. Mettre à jour Float si impacté
             if ($typeOp['impact_float'] !== 0) {
@@ -193,9 +271,33 @@ class TransactionController extends Controller {
 
         } catch (Exception $e) {
             $txModel->rollback();
-            Session::flash('error', 'Erreur lors de l\'enregistrement. Veuillez réessayer plus tard.');
+            $message = $e instanceof InvalidArgumentException
+                ? $e->getMessage()
+                : 'Erreur lors de l\'enregistrement. Veuillez réessayer plus tard.';
+            Session::flash('error', $message);
             $this->redirect('transactions/create');
         }
+    }
+
+    private function isInternationalService(array $service): bool {
+        $name = strtolower((string)($service['nom'] ?? ''));
+        $category = strtoupper((string)($service['categorie'] ?? ''));
+
+        return $category === 'INTERNATIONAL'
+            || str_contains($name, 'ria')
+            || str_contains($name, 'western')
+            || str_contains($name, 'moneygram')
+            || str_contains($name, 'cash');
+    }
+
+    private function deduireTypeMouvement(array $typeOp): string {
+        $impactCaisse = (int)($typeOp['impact_caisse'] ?? 0);
+        $impactFloat = (int)($typeOp['impact_float'] ?? 0);
+        $impactPrincipal = $impactCaisse !== 0 ? $impactCaisse : $impactFloat;
+
+        if ($impactPrincipal > 0) return 'ENTREE';
+        if ($impactPrincipal < 0) return 'SORTIE';
+        return 'NEUTRE';
     }
 
 // Méthode show : gère show. 
