@@ -51,6 +51,44 @@
     </section>
 
     <section class="app-card">
+        <div class="app-card-header"><span><i data-lucide="building-2"></i> Agence et nature</span></div>
+        <div class="app-card-body">
+            <div class="tx-summary">
+                <div><span>Agence</span><strong><?= e($transaction['nom_agence'] ?? $transaction['agence'] ?? '—') ?></strong></div>
+                <div><span>Motif</span><strong><?= e($transaction['motif_transaction'] ?: '—') ?></strong></div>
+                <div><span>Nature transaction</span><strong><?= e($transaction['nature_transaction'] ?: '—') ?></strong></div>
+                <div><span>Type mouvement</span><strong><?= e($transaction['type_mouvement'] ?: '—') ?></strong></div>
+            </div>
+        </div>
+    </section>
+
+    <?php if (!empty($transaction['nom_expediteur']) || !empty($transaction['nom_benefis'])): ?>
+        <section class="tx-party-grid">
+            <article class="app-card">
+                <div class="app-card-header"><span><i data-lucide="user-round"></i> Expéditeur</span></div>
+                <div class="app-card-body">
+                    <div class="tx-summary">
+                        <div><span>Nom complet</span><strong><?= e($transaction['nom_expediteur'] ?: '—') ?></strong></div>
+                        <div><span>Numéro CNI</span><strong><?= e($transaction['expediteur_identifiant'] ?? '—') ?></strong></div>
+                        <div><span>Téléphone</span><strong><?= e($transaction['expediteur_telephone'] ?? '—') ?></strong></div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="app-card">
+                <div class="app-card-header"><span><i data-lucide="user-check"></i> Bénéficiaire</span></div>
+                <div class="app-card-body">
+                    <div class="tx-summary">
+                        <div><span>Nom complet</span><strong><?= e($transaction['nom_benefis'] ?: '—') ?></strong></div>
+                        <div><span>Numéro CNI</span><strong><?= e($transaction['beneficiaire_identifiant'] ?? '—') ?></strong></div>
+                        <div><span>Téléphone</span><strong><?= e($transaction['beneficiaire_telephone'] ?? '—') ?></strong></div>
+                    </div>
+                </div>
+            </article>
+        </section>
+    <?php endif; ?>
+
+    <section class="app-card">
         <div class="app-card-header"><span><i data-lucide="message-square"></i> Note</span></div>
         <div class="app-card-body">
             <p><?= nl2br(e($transaction['note'] ?: 'Aucune note.')) ?></p>

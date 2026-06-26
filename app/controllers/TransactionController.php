@@ -384,9 +384,78 @@ class TransactionController extends Controller {
         Auth::requireRole(['SUPERVISEUR', 'DG']);
         $this->verifyCsrf();
         require_once APP_PATH . '/models/Transaction.php';
+        require_once APP_PATH . '/models/SoldeService.php';
+        require_once APP_PATH . '/models/MouvementSolde.php';
+        require_once APP_PATH . '/models/CommissionTransaction.php';
+
         $txModel = new Transaction();
-        $txModel->update((int)$id, ['statut' => 'ANNULEE']);
-        Session::flash('success', 'Transaction annulée.');
-        $this->redirect('transactions/' . $id);
+        $soldeModel = new SoldeService();
+        $mvtModel = new MouvementSolde();
+        $commModel = new CommissionTransaction();
+        $idTransaction = (int)$id;
+
+        try {
+            $txModel->beginTransaction();
+
+            $transaction = $txModel->find($idTransaction);
+            if (!$transaction) {
+                throw new InvalidArgumentException('Transaction introuvable.');
+            }
+
+            if (($transaction['statut'] ?? '') === 'ANNULEE') {
+                throw new InvalidArgumentException('Cette transaction est déjà annulée.');
+            }
+
+            if (($transaction['statut'] ?? '') !== 'VALIDEE') {
+                throw new InvalidArgumentException('Seules les transactions validées peuvent être annulées.');
+            }
+
+            $mouvements = $mvtModel->getByTransaction($idTransaction);
+            foreach ($mouvements as $mouvement) {
+                $natureInverse = $mouvement['nature'] === 'CREDIT' ? 'DEBIT' : 'CREDIT';
+                $montant = (float)$mouvement['montant'];
+                $resultats = $soldeModel->mettreAJour((int)$mouvement['id_solde'], $montant, $natureInverse);
+
+                $mvtModel->createMouvement(
+                    $idTransaction,
+                    (int)$mouvement['id_solde'],
+                    $natureInverse,
+                    $montant,
+                    $resultats['solde_avant'],
+                    $resultats['solde_apres'],
+                    'Annulation comptable du mouvement #' . $mouvement['id_mouvement']
+                );
+            }
+
+            foreach ($commModel->getByTransaction($idTransaction) as $commission) {
+                if ((float)$commission['montant_commission'] == 0.0) {
+                    continue;
+                }
+
+                $commModel->create([
+                    'id_transaction' => $idTransaction,
+                    'id_config' => (int)$commission['id_config'],
+                    'source' => $commission['source'],
+                    'montant_commission' => -abs((float)$commission['montant_commission']),
+                    'est_benefice' => (int)$commission['est_benefice'],
+                ]);
+            }
+
+            $txModel->update($idTransaction, [
+                'statut' => 'ANNULEE',
+                'note' => trim((string)($transaction['note'] ?? '') . "\nAnnulation comptable effectuee le " . date('Y-m-d H:i:s') . ' par utilisateur #' . Auth::id()),
+            ]);
+
+            $txModel->commit();
+            Session::flash('success', 'Transaction annulée avec écritures comptables inverses.');
+        } catch (InvalidArgumentException $e) {
+            $txModel->rollback();
+            Session::flash('error', $e->getMessage());
+        } catch (Exception $e) {
+            $txModel->rollback();
+            Session::flash('error', 'Annulation impossible. Aucune écriture comptable n’a été modifiée.');
+        }
+
+        $this->redirect('transactions/' . $idTransaction);
     }
 }

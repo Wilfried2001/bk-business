@@ -351,7 +351,15 @@ INSERT INTO type_operation (libelle, description, impact_float, impact_caisse) V
 ('Envoi',           'Le client envoie de l argent',           0, +1),  -- Caisse augmente
 ('Reception',       'Le client reçoit de l argent',           0, -1),  -- Caisse diminue
 ('Paiement',        'Paiement d une facture ou service',     -1, +1),  -- Float diminue, Caisse augmente
-('Reabonnement',    'Renouvellement d un abonnement',        -1, +1);  -- Float diminue, Caisse augmente
+('Reabonnement',    'Renouvellement d un abonnement',        -1, +1),  -- Float diminue, Caisse augmente
+('Envoi client',    'Envoi international client',             0, +1),  -- Caisse augmente
+('Retrait client',  'Paiement ou retrait international client',0, -1), -- Caisse diminue
+('Retour de fond',  'Retour de fonds ou annulation payee',    0, -1),  -- Caisse diminue
+('Annulation',      'Annulation operation internationale',     0, -1),  -- Caisse diminue
+('Depot en especes','Depot especes en agence',                0, +1),  -- Caisse augmente
+('Cash in float',   'Approvisionnement float',               +1, -1),  -- Float augmente, caisse diminue
+('Cash out float',  'Sortie ou retrait float',               -1, +1),  -- Float diminue, caisse augmente
+('Envoi colis',     'Envoi de colis',                        -1, +1);  -- Float diminue, caisse augmente
 
 -- Soldes initiaux : 2 soldes par service (FLOAT + CAISSE) = 22 lignes
 INSERT INTO solde_service (id_service, type_solde, montant_actuel) VALUES

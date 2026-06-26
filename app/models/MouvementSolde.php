@@ -31,6 +31,7 @@ class MouvementSolde extends Model {
             JOIN solde_service ss ON ss.id_solde   = ms.id_solde
             JOIN service       s  ON s.id_service  = ss.id_service
             WHERE ms.id_transaction = ?
+            ORDER BY ms.id_mouvement ASC
         ", [$idTransaction]);
     }
 }

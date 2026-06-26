@@ -59,17 +59,30 @@ class RapportController extends Controller {
         $out = fopen('php://output', 'w');
         fputcsv($out, ['ID','Date','Service','Type','Montant','Agent','Statut'], ';');
         foreach ($transactions as $tx) {
+            $safeService = $this->sanitizeCsvField($tx['nom_service']);
+            $safeType = $this->sanitizeCsvField($tx['libelle_type']);
+            $safeAgent = $this->sanitizeCsvField($tx['nom_agent']);
             fputcsv($out, [
                 $tx['id_transaction'],
                 $tx['date_heure'],
-                $tx['nom_service'],
-                $tx['libelle_type'],
+                $safeService,
+                $safeType,
                 $tx['montant'],
-                $tx['nom_agent'],
+                $safeAgent,
                 $tx['statut'],
             ], ';');
         }
         fclose($out);
         exit;
+    }
+
+    private function sanitizeCsvField(string $value): string {
+        if ($value === '') {
+            return $value;
+        }
+        if (in_array($value[0], ['=', '+', '-', '@'], true)) {
+            return "'" . $value;
+        }
+        return $value;
     }
 }

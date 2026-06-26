@@ -34,8 +34,11 @@ class Transaction extends Model {
             $params[] = $filtres['statut'];
         }
         if (!empty($filtres['search'])) {
-            $where[]  = '(t.reference LIKE ? OR u.nom LIKE ? OR s.nom LIKE ? OR to2.libelle LIKE ?)';
+            $where[]  = '(t.reference LIKE ? OR u.nom LIKE ? OR s.nom LIKE ? OR to2.libelle LIKE ? OR t.nom_expediteur LIKE ? OR t.nom_benefis LIKE ? OR a.nom LIKE ?)';
             $search = '%' . $filtres['search'] . '%';
+            $params[] = $search;
+            $params[] = $search;
+            $params[] = $search;
             $params[] = $search;
             $params[] = $search;
             $params[] = $search;

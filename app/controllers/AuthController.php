@@ -18,13 +18,18 @@ class AuthController extends Controller {
     public function login(): void {
         $this->verifyCsrf();
 
-        if ($this->isLoginLocked()) {
+        $email     = $this->post('email', '');
+        $password  = $this->post('password', '');
+        $ipAddress = $this->getClientIp();
+        $userAgent = $this->getUserAgent();
+
+        require_once APP_PATH . '/models/LoginAttempt.php';
+        $attemptModel = new LoginAttempt();
+
+        if ($this->isLoginLocked($email, $ipAddress, $attemptModel)) {
             Session::flash('error', 'Trop de tentatives de connexion. Réessayez dans quelques minutes.');
             $this->redirect('auth/login');
         }
-
-        $email    = $this->post('email', '');
-        $password = $this->post('password', '');
 
         $errors = $this->validate([
             'email'    => $email,
@@ -42,13 +47,13 @@ class AuthController extends Controller {
         $user      = $userModel->authenticate($email, $password);
 
         if ($user) {
-            $this->clearLoginAttempts();
+            $this->clearLoginAttempts($email, $ipAddress, $attemptModel);
             Auth::login($user);
             Session::flash('success', 'Bienvenue, ' . $user['nom'] . ' !');
             $this->redirect('dashboard');
         }
 
-        $this->incrementLoginAttempts();
+        $this->incrementLoginAttempts($email, $ipAddress, $userAgent, $attemptModel);
         Session::flash('error', 'Email ou mot de passe incorrect.');
         $this->redirect('auth/login');
     }
@@ -59,20 +64,51 @@ class AuthController extends Controller {
         $this->redirect('auth/login');
     }
 
-    private function isLoginLocked(): bool {
-        return (int) Session::get('login_lock_until', 0) > time();
-    }
-
-    private function incrementLoginAttempts(): void {
-        $attempts = (int) Session::get('login_attempts', 0) + 1;
-        Session::set('login_attempts', $attempts);
-        if ($attempts >= 5) {
-            Session::set('login_lock_until', time() + 300);
+    private function getClientIp(): string {
+        if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            return trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0]);
         }
+        return $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
     }
 
-    private function clearLoginAttempts(): void {
-        Session::remove('login_attempts');
-        Session::remove('login_lock_until');
+    private function getUserAgent(): string {
+        return $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
+    }
+
+    private function isLoginLocked(string $email, string $ipAddress, LoginAttempt $attemptModel): bool {
+        $lock = $attemptModel->getActiveLock($email, $ipAddress);
+        return !empty($lock['lock_until']) && strtotime($lock['lock_until']) > time();
+    }
+
+    private function incrementLoginAttempts(string $email, string $ipAddress, string $userAgent, LoginAttempt $attemptModel): void {
+        $failedCount = $attemptModel->countRecentFailedAttempts($email, $ipAddress, 15);
+        $lockDuration = 300;
+        if ($failedCount >= 5) {
+            $lockDuration = min(1800, 60 * pow(2, $failedCount - 4));
+        }
+        $lockUntil = $failedCount + 1 >= 5
+            ? date('Y-m-d H:i:s', time() + $lockDuration)
+            : null;
+
+        $attemptModel->record(
+            $email,
+            $ipAddress,
+            $userAgent,
+            false,
+            $lockUntil,
+            'Echec de connexion'
+        );
+    }
+
+    private function clearLoginAttempts(string $email, string $ipAddress, LoginAttempt $attemptModel): void {
+        $attemptModel->record(
+            $email,
+            $ipAddress,
+            $this->getUserAgent(),
+            true,
+            null,
+            'Connexion réussie'
+        );
+        $attemptModel->clearAttempts($email, $ipAddress);
     }
 }

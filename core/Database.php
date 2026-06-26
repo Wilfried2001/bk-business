@@ -19,7 +19,7 @@ class Database {
             ]);
         } catch (PDOException $e) {
             $message = 'Connexion à la base de données impossible.';
-            if (Config::get('APP_ENV', 'production') === 'development') {
+            if (Config::get('APP_DEBUG', false) === true) {
                 $message = 'Connexion BDD échouée : ' . $e->getMessage();
             }
             throw new RuntimeException($message, 0, $e);

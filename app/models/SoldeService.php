@@ -67,8 +67,17 @@ class SoldeService extends Model {
 
 // Méthode mettreAJour : gère mettreAJour. 
     public function mettreAJour(int $idSolde, float $variation, string $nature): array {
-        // Récupérer le solde actuel
-        $solde = $this->find($idSolde);
+        // Verrouille la ligne pendant les écritures financières concurrentes.
+        $solde = $this->queryOne("
+            SELECT *
+            FROM solde_service
+            WHERE id_solde = ?
+            FOR UPDATE
+        ", [$idSolde]);
+        if (!$solde) {
+            throw new RuntimeException('Solde introuvable.');
+        }
+
         $soldeAvant = (float) $solde['montant_actuel'];
         $soldeApres = $nature === 'CREDIT'
             ? $soldeAvant + $variation

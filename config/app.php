@@ -6,6 +6,9 @@ define('APP_NAME',    Config::get('APP_NAME', 'BK Business'));
 define('APP_VERSION', Config::get('APP_VERSION', '1.0.0'));
 define('BASE_URL',    Config::get('BASE_URL', 'http://localhost:8000'));
 define('APP_ENV',     Config::get('APP_ENV', 'production'));
+define('APP_DEBUG',   Config::get('APP_DEBUG', false));
+
+define('IA_ENABLED',  Config::get('IA_ENABLED', false));
 
 if (!defined('ROOT_PATH')) {
     define('ROOT_PATH', dirname(__DIR__));

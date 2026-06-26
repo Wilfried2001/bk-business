@@ -13,110 +13,228 @@
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
         <!-- Bouton flottant Agent IA -->
-        <button id="ai-assistant-btn" class="app-btn app-btn-primary rounded-full" style="
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    width: 60px;
-    height: 60px;
-    font-size: 28px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    z-index: 999;
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-" title="Ouvrir l'assistant IA"><i data-lucide="bot"></i></button>
+        <button id="ai-assistant-btn" class="ai-floating-btn" title="Ouvrir l'assistant IA" aria-label="Ouvrir l'assistant IA">
+            <i data-lucide="bot"></i>
+        </button>
 
         <!-- Modal Agent IA -->
         <div class="app-modal" id="aiAssistantModal" tabindex="-1" aria-hidden="true">
-            <div class="app-modal-dialog">
+            <div class="app-modal-dialog ai-assistant-dialog">
                     <div class="app-modal-header">
-                        <h5 class="flex items-center gap-2 font-semibold"><i data-lucide="bot"></i> Assistant IA BK_Business</h5>
+                        <div>
+                            <h5 class="flex items-center gap-2 font-semibold"><i data-lucide="bot"></i> Agent IA BK Business</h5>
+                            <small>Assistant opérationnel</small>
+                        </div>
                         <button type="button" class="app-close app-close-white" data-dismiss="modal"
                             aria-label="Fermer"></button>
                     </div>
-                    <div class="app-modal-body">
-                        <div id="ai-modal-chat"
-                            class="mb-4 h-96 overflow-y-auto rounded-md bg-slate-50 p-4">
-                            <div id="ai-welcome" class="app-alert app-alert-info alert-permanent">
-                                <strong class="flex items-center gap-2"><i data-lucide="bot-message-square"></i> Bienvenue !</strong>
-                                <p class="mb-2">Je suis votre assistant IA. Posez-moi vos questions sur :</p>
-                                <ul class="list-disc pl-5">
-                                    <li>Les stocks et soldes</li>
-                                    <li>Les transactions</li>
-                                    <li>Les alertes actives</li>
-                                    <li>Les commissions (si autorisé)</li>
-                                </ul>
+                    <div class="app-modal-body ai-assistant-body">
+                        <div id="ai-modal-chat" class="ai-modal-chat" aria-live="polite">
+                            <div id="ai-welcome" class="ai-welcome">
+                                <div class="service-avatar"><i data-lucide="bot-message-square"></i></div>
+                                <div>
+                                    <strong>Bienvenue !</strong>
+                                    <span>Posez une question sur les stocks, transactions, alertes actives ou commissions autorisées.</span>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Boutons raccourcis rapides -->
-                        <div id="ai-shortcuts"
-                            style="margin-bottom: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-                            <button type="button" class="app-btn app-btn-sm app-btn-outline-primary ai-shortcut"
+                        <div id="ai-shortcuts" class="ai-shortcuts">
+                            <button type="button" class="ai-shortcut"
                                 data-question="Quel est l'état actuel des soldes?">
-                                <i data-lucide="wallet"></i> Soldes
+                                <i data-lucide="wallet"></i><span>Soldes</span>
                             </button>
-                            <button type="button" class="app-btn app-btn-sm app-btn-outline-primary ai-shortcut"
+                            <button type="button" class="ai-shortcut"
                                 data-question="Combien de transactions avons-nous aujourd'hui?">
-                                <i data-lucide="arrow-left-right"></i> Transactions
+                                <i data-lucide="arrow-left-right"></i><span>Transactions</span>
                             </button>
-                            <button type="button" class="app-btn app-btn-sm border border-warning/40 bg-white text-warning hover:bg-orange-50 ai-shortcut"
+                            <button type="button" class="ai-shortcut"
                                 data-question="Quelles sont les alertes actives?">
-                                <i data-lucide="alert-triangle"></i> Alertes
+                                <i data-lucide="alert-triangle"></i><span>Alertes</span>
                             </button>
-                            <button type="button" class="app-btn app-btn-sm border border-success/40 bg-white text-success hover:bg-green-50 ai-shortcut"
+                            <button type="button" class="ai-shortcut"
                                 data-question="Donne-moi une analyse rapide de la situation">
-                                <i data-lucide="trending-up"></i> Analyse
+                                <i data-lucide="trending-up"></i><span>Analyse</span>
                             </button>
                         </div>
 
-                        <div class="app-input-group">
+                        <div class="ai-input-row">
+                            <label class="sr-only" for="ai-modal-input">Question rapide</label>
                             <input type="text" id="ai-modal-input" class="app-field" placeholder="Votre question..."
                                 autocomplete="off">
-                            <button class="app-btn app-btn-primary" id="ai-modal-send" type="button">Envoyer</button>
+                            <button class="app-btn app-btn-primary" id="ai-modal-send" type="button">
+                                <i data-lucide="send-horizontal"></i>
+                                <span id="ai-modal-send-text">Envoyer</span>
+                                <span id="ai-modal-send-spinner" class="ai-modal-spinner hidden" aria-hidden="true"></span>
+                            </button>
                         </div>
                     </div>
             </div>
         </div>
 
         <style>
-#ai-assistant-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+.ai-floating-btn {
+    position: fixed;
+    right: 1.5rem;
+    bottom: 1.5rem;
+    z-index: 999;
+    display: inline-flex;
+    height: 3.5rem;
+    width: 3.5rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: #020617;
+    color: #fff;
+    box-shadow: 0 20px 25px -5px rgba(15, 23, 42, .18), 0 8px 10px -6px rgba(15, 23, 42, .18);
+    transition: transform .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+
+.ai-floating-btn:hover {
+    transform: translateY(-2px);
+    background: #1e293b;
+    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, .32);
+}
+
+.ai-floating-btn svg {
+    height: 1.35rem;
+    width: 1.35rem;
+}
+
+.ai-assistant-dialog {
+    max-width: 42rem;
+}
+
+.ai-assistant-body {
+    display: grid;
+    gap: 1rem;
+}
+
+.ai-modal-chat {
+    display: flex;
+    height: min(24rem, 52vh);
+    flex-direction: column;
+    overflow-y: auto;
+    border-radius: .5rem;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    padding: 1rem;
+}
+
+.ai-welcome {
+    display: flex;
+    gap: .75rem;
+    border-radius: .5rem;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    padding: .875rem;
+}
+
+.ai-welcome strong,
+.ai-welcome span {
+    display: block;
+}
+
+.ai-welcome strong {
+    color: #020617;
+    font-size: .875rem;
+}
+
+.ai-welcome span {
+    margin-top: .25rem;
+    color: #64748b;
+    font-size: .875rem;
+}
+
+.ai-shortcuts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .5rem;
+}
+
+.ai-shortcut {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    border-radius: .375rem;
+    border: 1px solid #cbd5e1;
+    background: #fff;
+    padding: .5rem .75rem;
+    color: #475569;
+    font-size: .875rem;
+    font-weight: 600;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+
+.ai-shortcut:hover {
+    border-color: #c7d2fe;
+    background: #f8fafc;
+    color: #3730a3;
+}
+
+.ai-input-row {
+    display: grid;
+    gap: .75rem;
+}
+
+@media (min-width: 640px) {
+    .ai-input-row {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
 }
 
 .ai-modal-message {
-    margin-bottom: 1rem;
-    padding: 0.75rem;
-    border-radius: 0.25rem;
-    animation: slideIn 0.3s ease-in-out;
+    margin-bottom: .75rem;
+    max-width: min(34rem, 88%);
+    border-radius: .5rem;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    padding: .75rem .875rem;
+    color: #334155;
+    font-size: .875rem;
+    line-height: 1.55;
+    animation: aiModalMessageIn .2s ease-out;
 }
 
 .ai-modal-message.user {
-    background-color: #e7f3ff;
-    border-left: 4px solid #007bff;
-    text-align: right;
+    align-self: flex-end;
+    border-color: #c7d2fe;
+    background: #eef2ff;
+    color: #312e81;
 }
 
 .ai-modal-message.ai {
-    background-color: #ffffff;
-    border: 1px solid #dee2e6;
-    border-left: 4px solid #6c757d;
+    align-self: flex-start;
+    border-left: 4px solid #4f46e5;
 }
 
 .ai-modal-message.error {
-    background-color: #f8d7da;
-    border-left: 4px solid #dc3545;
+    align-self: flex-start;
+    border-color: #fecaca;
+    border-left: 4px solid #d32f2f;
+    background: #fef2f2;
+    color: #7f1d1d;
 }
 
-@keyframes slideIn {
+.ai-modal-spinner {
+    height: 1rem;
+    width: 1rem;
+    border-radius: 9999px;
+    border: 2px solid rgba(255, 255, 255, .45);
+    border-top-color: #fff;
+    animation: aiModalSpin .75s linear infinite;
+}
+
+@keyframes aiModalSpin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes aiModalMessageIn {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(.25rem);
     }
 
     to {
@@ -133,6 +251,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const chatDiv = document.getElementById('ai-modal-chat');
     const inputField = document.getElementById('ai-modal-input');
     const sendButton = document.getElementById('ai-modal-send');
+    const sendText = document.getElementById('ai-modal-send-text');
+    const sendSpinner = document.getElementById('ai-modal-send-spinner');
     const welcomeDiv = document.getElementById('ai-welcome');
     const shortcutsDiv = document.getElementById('ai-shortcuts');
     let firstMessageSent = false;
@@ -168,6 +288,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    function setLoading(isLoading) {
+        sendButton.disabled = isLoading;
+        sendText.classList.toggle('hidden', isLoading);
+        sendSpinner.classList.toggle('hidden', !isLoading);
+    }
+
     function sendMessage() {
         const question = inputField.value.trim();
         if (!question) return;
@@ -175,7 +301,7 @@ document.addEventListener('DOMContentLoaded', function() {
         removeWelcome();
         addMessage(question, 'user');
         inputField.value = '';
-        sendButton.disabled = true;
+        setLoading(true);
 
         fetch('/api/agent/ask', {
                 method: 'POST',
@@ -215,10 +341,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             })
             .catch(error => {
-                addMessage('Erreur réseau : ' + error.message, 'error');
+                if (error.message !== 'Non-JSON response') {
+                    addMessage('Erreur réseau : ' + error.message, 'error');
+                }
             })
             .finally(() => {
-                sendButton.disabled = false;
+                setLoading(false);
                 inputField.focus();
             });
     }
@@ -227,26 +355,20 @@ document.addEventListener('DOMContentLoaded', function() {
         const msgDiv = document.createElement('div');
         msgDiv.className = 'ai-modal-message ' + type;
 
-        // Échapper le texte pour éviter les injections XSS
-        if (type === 'user') {
-            msgDiv.textContent = text;
-        } else if (type === 'error') {
-            // Allow minimal HTML in error messages (e.g., login link)
-            msgDiv.innerHTML = text;
-        } else if (type === 'ai') {
-            // Pour les réponses IA, transformer les retours à la ligne et maintenir la lisibilité
-            const escaped = document.createElement('div');
-            escaped.textContent = text;
-            msgDiv.innerHTML = escaped.innerHTML.replace(/\n/g, '<br>');
-        }
+        const escaped = document.createElement('div');
+        escaped.textContent = text;
+        msgDiv.innerHTML = escaped.innerHTML.replace(/\n/g, '<br>');
 
         chatDiv.appendChild(msgDiv);
         chatDiv.scrollTop = chatDiv.scrollHeight;
     }
 
     sendButton.addEventListener('click', sendMessage);
-    inputField.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') sendMessage();
+    inputField.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
     });
 
     // Événements sur les boutons raccourcis

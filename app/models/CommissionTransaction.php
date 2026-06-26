@@ -54,4 +54,13 @@ class CommissionTransaction extends Model {
         ", $params);
         return (float)($r['total'] ?? 0);
     }
+
+    public function getByTransaction(int $idTransaction): array {
+        return $this->query("
+            SELECT *
+            FROM commission_transaction
+            WHERE id_transaction = ?
+            ORDER BY id_commission ASC
+        ", [$idTransaction]);
+    }
 }

@@ -438,6 +438,8 @@ class AgentIAController extends Controller {
         $comm_mois = $donnees['commissions_mois'];
         $analyses = $donnees['analyses'] ?? ['anomalies' => [], 'tendances' => []];
 
+        unset($user['email']);
+
         // Formatter les soldes
         $soldes_text = "SOLDES ACTUELS :\n";
         foreach ($soldes as $service => $types) {
@@ -516,6 +518,10 @@ class AgentIAController extends Controller {
             default => ''
         };
 
+        if (!IA_ENABLED) {
+            throw new RuntimeException('L’agent IA est désactivé.');
+        }
+
         $services_list = empty($entreprise['services']) ? 'Aucun service actif trouvé.' : implode(', ', array_map(function($s) {
             return $s['nom'];
         }, $entreprise['services']));
@@ -534,12 +540,12 @@ class AgentIAController extends Controller {
         );
 
         $modeInstructions = match($mode) {
-            'chat' => 'Mode CHAT : Réponse très courte, simple et amicale. Ne donne pas d\'informations supplémentaires si l\'utilisateur ne les demande pas.',
-            'analyse' => 'Mode ANALYSE : Détecte les patterns, anomalies. Format: ✅ Points positifs / ⚠️ Points d\'attention / 💡 Recommandations',
-            'rapport' => 'Mode RAPPORT : Génère un rapport structuré et professionnel',
-            'prediction' => 'Mode PRÉDICTION : Anticipe les besoins à court terme (24h-7j)',
-            'alerte' => 'Mode ALERTE : Aide à résoudre une alerte de stock',
-                'guichet' => 'Mode GUICHET : Fournis des instructions courtes et actions immédiates pour l\'agent au guichet',
+            'chat' => 'Mode CHAT : Réponse claire, concise et accessible. Fournis un résumé utile, des points clés et éventuellement une recommandation d\'action, sans développer excessivement.',
+            'analyse' => 'Mode ANALYSE : Détecte les patterns, anomalies et tendances. Format : ✅ Points positifs / ⚠️ Points d\'attention / 💡 Recommandations.',
+            'rapport' => 'Mode RAPPORT : Génère un rapport structuré, professionnel et factuel.',
+            'prediction' => 'Mode PRÉDICTION : Anticipe les besoins à court terme (24h-7j), en se basant sur les tendances actuelles.',
+            'alerte' => 'Mode ALERTE : Donne une évaluation rapide des alertes actives et propose des actions correctives.',
+                'guichet' => 'Mode GUICHET : Fournis des instructions courtes et actions immédiates pour l\'agent au guichet.',
             default => 'Mode CHAT'
         };
 
@@ -560,12 +566,18 @@ $roleInfo
 MODE DE FONCTIONNEMENT ACTUEL :
 $modeInstructions
 
+=== OBJECTIF DE RÉPONSE ===
+- Réponds de façon concise, claire et professionnelle.
+- Donne un résumé utile, puis un ou deux points clés.
+- Si la question est opérationnelle, ajoute une recommandation d'action simple.
+- Utilise des listes courtes seulement si cela améliore la clarté.
+- Si tu manques de données, mentionne-le et propose un prochain point à vérifier.
+
 === PROFIL ENTREPRISE ===
 $entreprise_text
 
 === PROFIL UTILISATEUR ===
 - Nom : {$user['nom']}
-- Email : {$user['email']}
 - Rôle : {$user['role']}
 
 === DONNÉES EN TEMPS RÉEL ===
