@@ -17,7 +17,8 @@
     "serve": "php -S localhost:8000 -t public"
   },
   "require": {
-    "php": ">=8.0"
+    "php": ">=8.0",
+    "dompdf/dompdf": "^3.0"
   },
   "config": {
     "optimize-autoloader": true,

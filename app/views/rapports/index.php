@@ -14,9 +14,21 @@
             <p>Exporter et analyser les transactions sur une période donnée.</p>
         </div>
         <div class="bk-actions">
-            <a href="<?= url('rapports/export?mois=' . $mois . '&annee=' . $annee . '&service=' . ($filtres['id_service'] ?? '')) ?>" class="bk-btn bk-btn-primary">
-                <i data-lucide="download"></i> Exporter CSV
-            </a>
+            <form method="get" action="<?= url('rapports/export') ?>" class="flex items-center gap-2">
+                <input type="hidden" name="mois" value="<?= e($mois) ?>">
+                <input type="hidden" name="annee" value="<?= e($annee) ?>">
+                <input type="hidden" name="service" value="<?= e($filtres['id_service'] ?? '') ?>">
+                <select name="format" class="bk-select">
+                    <option value="csv">CSV</option>
+                    <option value="pdf">PDF</option>
+                    <option value="xlsx">Excel (.xls)</option>
+                    <option value="json">JSON</option>
+                    <option value="html">HTML</option>
+                </select>
+                <button type="submit" class="bk-btn bk-btn-primary">
+                    <i data-lucide="download"></i> Exporter
+                </button>
+            </form>
         </div>
     </section>
 

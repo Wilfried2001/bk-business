@@ -2,74 +2,75 @@
         </div>
         <footer class="app-footer">
             <div class="mx-auto flex max-w-7xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <small>&copy; <?= date('Y') ?> <?= e(APP_NAME) ?> - Tous droits réservés.</small>
-                    </div>
-                    <div class="sm:text-right">
-                        <small>v<?= e(APP_VERSION) ?> | <a href="#" class="text-white/70 hover:text-white">Aide</a></small>
-                    </div>
+                <div>
+                    <small>&copy; <?= date('Y') ?> <?= e(APP_NAME) ?> - Tous droits réservés.</small>
+                </div>
+                <div class="sm:text-right">
+                    <small>v<?= e(APP_VERSION) ?> | <a href="#" class="text-white/70 hover:text-white">Aide</a></small>
+                </div>
             </div>
         </footer>
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
         <!-- Bouton flottant Agent IA -->
-        <button id="ai-assistant-btn" class="ai-floating-btn" title="Ouvrir l'assistant IA" aria-label="Ouvrir l'assistant IA">
+        <button id="ai-assistant-btn" class="ai-floating-btn" title="Ouvrir l'assistant IA"
+            aria-label="Ouvrir l'assistant IA">
             <i data-lucide="bot"></i>
         </button>
 
         <!-- Modal Agent IA -->
         <div class="app-modal" id="aiAssistantModal" tabindex="-1" aria-hidden="true">
             <div class="app-modal-dialog ai-assistant-dialog">
-                    <div class="app-modal-header">
-                        <div>
-                            <h5 class="flex items-center gap-2 font-semibold"><i data-lucide="bot"></i> Agent IA BK Business</h5>
-                            <small>Assistant opérationnel</small>
-                        </div>
-                        <button type="button" class="app-close app-close-white" data-dismiss="modal"
-                            aria-label="Fermer"></button>
+                <div class="app-modal-header">
+                    <div>
+                        <h5 class="flex items-center gap-2 font-semibold"><i data-lucide="bot"></i> Agent IA BK Business
+                        </h5>
+                        <small>Assistant opérationnel</small>
                     </div>
-                    <div class="app-modal-body ai-assistant-body">
-                        <div id="ai-modal-chat" class="ai-modal-chat" aria-live="polite">
-                            <div id="ai-welcome" class="ai-welcome">
-                                <div class="service-avatar"><i data-lucide="bot-message-square"></i></div>
-                                <div>
-                                    <strong>Bienvenue !</strong>
-                                    <span>Posez une question sur les stocks, transactions, alertes actives ou commissions autorisées.</span>
-                                </div>
+                    <button type="button" class="app-close app-close-white" data-dismiss="modal"
+                        aria-label="Fermer"></button>
+                </div>
+                <div class="app-modal-body ai-assistant-body">
+                    <div id="ai-modal-chat" class="ai-modal-chat" aria-live="polite">
+                        <div id="ai-welcome" class="ai-welcome">
+                            <div class="service-avatar"><i data-lucide="bot-message-square"></i></div>
+                            <div>
+                                <strong>Bienvenue !</strong>
+                                <span>Posez une question sur les stocks, transactions, alertes actives ou commissions
+                                    autorisées.</span>
                             </div>
                         </div>
-
-                        <!-- Boutons raccourcis rapides -->
-                        <div id="ai-shortcuts" class="ai-shortcuts">
-                            <button type="button" class="ai-shortcut"
-                                data-question="Quel est l'état actuel des soldes?">
-                                <i data-lucide="wallet"></i><span>Soldes</span>
-                            </button>
-                            <button type="button" class="ai-shortcut"
-                                data-question="Combien de transactions avons-nous aujourd'hui?">
-                                <i data-lucide="arrow-left-right"></i><span>Transactions</span>
-                            </button>
-                            <button type="button" class="ai-shortcut"
-                                data-question="Quelles sont les alertes actives?">
-                                <i data-lucide="alert-triangle"></i><span>Alertes</span>
-                            </button>
-                            <button type="button" class="ai-shortcut"
-                                data-question="Donne-moi une analyse rapide de la situation">
-                                <i data-lucide="trending-up"></i><span>Analyse</span>
-                            </button>
-                        </div>
-
-                        <div class="ai-input-row">
-                            <label class="sr-only" for="ai-modal-input">Question rapide</label>
-                            <input type="text" id="ai-modal-input" class="app-field" placeholder="Votre question..."
-                                autocomplete="off">
-                            <button class="app-btn app-btn-primary" id="ai-modal-send" type="button">
-                                <i data-lucide="send-horizontal"></i>
-                                <span id="ai-modal-send-text">Envoyer</span>
-                                <span id="ai-modal-send-spinner" class="ai-modal-spinner hidden" aria-hidden="true"></span>
-                            </button>
-                        </div>
                     </div>
+
+                    <!-- Boutons raccourcis rapides -->
+                    <div id="ai-shortcuts" class="ai-shortcuts">
+                        <button type="button" class="ai-shortcut" data-question="Quel est l'état actuel des soldes?">
+                            <i data-lucide="wallet"></i><span>Soldes</span>
+                        </button>
+                        <button type="button" class="ai-shortcut"
+                            data-question="Combien de transactions avons-nous aujourd'hui?">
+                            <i data-lucide="arrow-left-right"></i><span>Transactions</span>
+                        </button>
+                        <button type="button" class="ai-shortcut" data-question="Quelles sont les alertes actives?">
+                            <i data-lucide="alert-triangle"></i><span>Alertes</span>
+                        </button>
+                        <button type="button" class="ai-shortcut"
+                            data-question="Donne-moi une analyse rapide de la situation">
+                            <i data-lucide="trending-up"></i><span>Analyse</span>
+                        </button>
+                    </div>
+
+                    <div class="ai-input-row">
+                        <label class="sr-only" for="ai-modal-input">Question rapide</label>
+                        <input type="text" id="ai-modal-input" class="app-field" placeholder="Votre question..."
+                            autocomplete="off">
+                        <button class="app-btn app-btn-primary" id="ai-modal-send" type="button">
+                            <i data-lucide="send-horizontal"></i>
+                            <span id="ai-modal-send-text">Envoyer</span>
+                            <span id="ai-modal-send-spinner" class="ai-modal-spinner hidden" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -228,7 +229,9 @@
 }
 
 @keyframes aiModalSpin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 @keyframes aiModalMessageIn {
@@ -322,7 +325,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (!ct.includes('application/json')) {
                         console.error('Non-JSON response from /api/agent/ask:', text);
                         const loginUrl = '<?= url("auth/login") ?>';
-                        addMessage(`Erreur : vous semblez déconnecté. <a href="${loginUrl}">Se connecter</a>`, 'error');
+                        addMessage(
+                            `Erreur : vous semblez déconnecté. <a href="${loginUrl}">Se connecter</a>`,
+                            'error');
                         return Promise.reject(new Error('Non-JSON response'));
                     }
                     try {
@@ -385,17 +390,93 @@ document.addEventListener('DOMContentLoaded', function() {
         <!-- Modal global pour afficher les détails d'une ligne (mobile) -->
         <div class="app-modal" id="rowDetailsModal" tabindex="-1" aria-hidden="true">
             <div class="app-modal-dialog app-modal-dialog-sm">
-                    <div class="app-modal-header">
-                        <h5 class="flex items-center gap-2 font-semibold"><i data-lucide="list"></i> Détails</h5>
-                        <button type="button" class="app-close app-close-white" data-dismiss="modal" aria-label="Fermer"></button>
-                    </div>
-                    <div class="app-modal-body">
-                        <div id="rowDetailsContent"></div>
-                    </div>
+                <div class="app-modal-header">
+                    <h5 class="flex items-center gap-2 font-semibold"><i data-lucide="list"></i> Détails</h5>
+                    <button type="button" class="app-close app-close-white" data-dismiss="modal"
+                        aria-label="Fermer"></button>
+                </div>
+                <div class="app-modal-body">
+                    <div id="rowDetailsContent"></div>
+                </div>
             </div>
         </div>
 
+        <?php
+            $lateData = Session::get('presence_late');
+            $currentPath = trim((string)parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH), '/');
+            $showLateModal = !empty($lateData) && in_array($currentPath, ['dashboard', ''], true);
+            if ($showLateModal) {
+                Session::remove('presence_late');
+            }
+        ?>
+        <?php if ($showLateModal): ?>
+        <div class="app-modal show" id="presenceLateModal" tabindex="-1" aria-hidden="false">
+            <div class="app-modal-dialog app-modal-dialog-sm">
+                <div class="app-modal-header">
+                    <h5 class="flex items-center gap-2 font-semibold"><i data-lucide="clock-3"></i> Déclaration de
+                        retard</h5>
+                    <button type="button" class="app-close app-close-white" data-dismiss="modal"
+                        aria-label="Fermer"></button>
+                </div>
+                <div class="app-modal-body">
+                    <form id="presenceLateForm" method="post" action="<?= url('presences/late') ?>">
+                        <?= csrfField() ?>
+                        <input type="hidden" name="user_id" value="<?= e((string)($lateData['user_id'] ?? 0)) ?>">
+                        <input type="hidden" name="date" value="<?= e((string)($lateData['date'] ?? date('Y-m-d'))) ?>">
+                        <div class="space-y-3">
+                            <div>
+                                <label class="app-label">Motif du retard</label>
+                                <textarea name="motif_retard" class="app-field" rows="3" required
+                                    placeholder="Expliquez brièvement la cause du retard"></textarea>
+                            </div>
+                            <div>
+                                <label class="app-label">Commentaire complémentaire</label>
+                                <textarea name="commentaire" class="app-field" rows="2"
+                                    placeholder="Informations utiles pour la direction"></textarea>
+                            </div>
+                            <div class="flex justify-end gap-2">
+                                <button type="button" class="app-btn" data-dismiss="modal">Ignorer</button>
+                                <button type="submit" class="app-btn app-btn-primary">Enregistrer</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <script src="<?= url('js/script.js') ?>"></script>
+        <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const lateModal = document.getElementById('presenceLateModal');
+    const lateForm = document.getElementById('presenceLateForm');
+    const hideLateModal = function() {
+        if (!lateModal) return;
+        lateModal.classList.remove('show');
+        lateModal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('modal-open');
+        sessionStorage.setItem('presenceLateModalDismissed', '1');
+    };
+
+    if (lateModal) {
+        if (sessionStorage.getItem('presenceLateModalDismissed') === '1') {
+            hideLateModal();
+        } else {
+            lateModal.classList.add('show');
+            lateModal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('modal-open');
+        }
+
+        lateModal.querySelectorAll('[data-dismiss="modal"]').forEach(function(button) {
+            button.addEventListener('click', hideLateModal);
+        });
+
+        if (lateForm) {
+            lateForm.addEventListener('submit', hideLateModal);
+        }
+    }
+});
+        </script>
         </body>
 
         </html>

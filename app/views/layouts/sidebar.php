@@ -35,6 +35,9 @@
                     <a class="app-nav-link" href="<?= url('alertes') ?>">
                         <i data-lucide="bell-ring"></i> Alertes
                     </a>
+                    <a class="app-nav-link" href="<?= url('presences') ?>">
+                        <i data-lucide="calendar-check-2"></i> Présences
+                    </a>
                 </div>
                 <?php endif; ?>
 

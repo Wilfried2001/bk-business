@@ -3,6 +3,8 @@
 --  SGBD    : MySQL / MariaDB
 --  Version : 1.0
 --  Date    : 2025
+--  Note    : Ce script consolide les créations de tables et
+--            les migrations complémentaires du projet.
 -- ============================================================
 
 DROP DATABASE IF EXISTS bk_business;
@@ -49,9 +51,46 @@ CREATE TABLE login_attempts (
     INDEX idx_login_attempts_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- ============================================================
+-- 3. TABLE : agent_ia_logs
+--    Journal d'audit des appels IA
+-- ============================================================
+CREATE TABLE agent_ia_logs (
+    id_agent_ia_log BIGINT NOT NULL AUTO_INCREMENT,
+    id_user BIGINT NOT NULL,
+    mode VARCHAR(50) NOT NULL,
+    prompt TEXT NOT NULL,
+    response TEXT NULL,
+    success TINYINT(1) NOT NULL DEFAULT 0,
+    error_message VARCHAR(255) NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id_agent_ia_log),
+    INDEX idx_agent_ia_logs_user (id_user),
+    INDEX idx_agent_ia_logs_mode (mode),
+    CONSTRAINT fk_agent_ia_logs_user FOREIGN KEY (id_user) REFERENCES utilisateur(id_user)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ============================================================
--- 3. TABLE : service
+-- 4. TABLE : presence_employe
+-- ============================================================
+CREATE TABLE presence_employe (
+    id_presence BIGINT NOT NULL AUTO_INCREMENT,
+    id_user BIGINT NOT NULL,
+    date_presence DATE NOT NULL,
+    statut ENUM('PRESENT','RETARD','ABSENT') NOT NULL DEFAULT 'PRESENT',
+    motif_retard VARCHAR(255) NULL,
+    commentaire VARCHAR(255) NULL,
+    heure_arrivee TIME NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id_presence),
+    UNIQUE KEY uk_presence_user_date (id_user, date_presence),
+    INDEX idx_presence_date (date_presence),
+    CONSTRAINT fk_presence_user FOREIGN KEY (id_user) REFERENCES utilisateur(id_user)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ============================================================
+-- 5. TABLE : service
 -- ============================================================
 CREATE TABLE service (
     id_service      BIGINT          NOT NULL AUTO_INCREMENT,
@@ -79,6 +118,40 @@ CREATE TABLE type_operation (
     PRIMARY KEY (id_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- ============================================================
+-- Seed des types d'operations par defaut
+-- ============================================================
+INSERT INTO type_operation (libelle, description, impact_float, impact_caisse)
+SELECT 'Envoi client', 'Envoi international client', 0, 1
+WHERE NOT EXISTS (SELECT 1 FROM type_operation WHERE libelle = 'Envoi client');
+
+INSERT INTO type_operation (libelle, description, impact_float, impact_caisse)
+SELECT 'Retrait client', 'Paiement ou retrait international client', 0, -1
+WHERE NOT EXISTS (SELECT 1 FROM type_operation WHERE libelle = 'Retrait client');
+
+INSERT INTO type_operation (libelle, description, impact_float, impact_caisse)
+SELECT 'Retour de fond', 'Retour de fonds ou annulation payee', 0, -1
+WHERE NOT EXISTS (SELECT 1 FROM type_operation WHERE libelle = 'Retour de fond');
+
+INSERT INTO type_operation (libelle, description, impact_float, impact_caisse)
+SELECT 'Annulation', 'Annulation operation internationale', 0, -1
+WHERE NOT EXISTS (SELECT 1 FROM type_operation WHERE libelle = 'Annulation');
+
+INSERT INTO type_operation (libelle, description, impact_float, impact_caisse)
+SELECT 'Depot en especes', 'Depot especes en agence', 0, 1
+WHERE NOT EXISTS (SELECT 1 FROM type_operation WHERE libelle = 'Depot en especes');
+
+INSERT INTO type_operation (libelle, description, impact_float, impact_caisse)
+SELECT 'Cash in float', 'Approvisionnement float', 1, -1
+WHERE NOT EXISTS (SELECT 1 FROM type_operation WHERE libelle = 'Cash in float');
+
+INSERT INTO type_operation (libelle, description, impact_float, impact_caisse)
+SELECT 'Cash out float', 'Sortie ou retrait float', -1, 1
+WHERE NOT EXISTS (SELECT 1 FROM type_operation WHERE libelle = 'Cash out float');
+
+INSERT INTO type_operation (libelle, description, impact_float, impact_caisse)
+SELECT 'Envoi colis', 'Envoi de colis', -1, 1
+WHERE NOT EXISTS (SELECT 1 FROM type_operation WHERE libelle = 'Envoi colis');
 
 -- ============================================================
 -- 4. TABLE : agence

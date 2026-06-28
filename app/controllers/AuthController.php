@@ -49,6 +49,7 @@ class AuthController extends Controller {
         if ($user) {
             $this->clearLoginAttempts($email, $ipAddress, $attemptModel);
             Auth::login($user);
+            $this->handlePostLoginPresence($user);
             Session::flash('success', 'Bienvenue, ' . $user['nom'] . ' !');
             $this->redirect('dashboard');
         }
@@ -110,5 +111,42 @@ class AuthController extends Controller {
             'Connexion réussie'
         );
         $attemptModel->clearAttempts($email, $ipAddress);
+    }
+
+    private function handlePostLoginPresence(array $user): void {
+        require_once APP_PATH . '/models/Presence.php';
+        $presenceModel = new Presence();
+        $today = date('Y-m-d');
+
+        if ($presenceModel->hasStatusForDate((int)$user['id_user'], $today)) {
+            return;
+        }
+
+        $now = new DateTime('now');
+        $lateThreshold = new DateTime($today . ' 08:30:00');
+        $absenceThreshold = new DateTime($today . ' 16:30:00');
+
+        if ($now > $absenceThreshold) {
+            $presenceModel->saveForUser(
+                (int)$user['id_user'],
+                'ABSENT',
+                null,
+                'Absence enregistrée automatiquement après la plage de présence.',
+                $today,
+                null
+            );
+            return;
+        }
+
+        if ($now > $lateThreshold) {
+            Session::set('presence_late', [
+                'user_id' => (int)$user['id_user'],
+                'date' => $today,
+                'message' => 'Vous êtes en retard aujourd\'hui. Veuillez indiquer le motif.',
+            ]);
+            return;
+        }
+
+        $presenceModel->saveForUser((int)$user['id_user'], 'PRESENT', null, null, $today, $now->format('H:i:s'));
     }
 }

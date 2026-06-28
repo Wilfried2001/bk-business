@@ -25,7 +25,12 @@
             <div class="app-dropdown">
                 <a class="user-menu app-dropdown-toggle" href="#" id="userDropdown" role="button" aria-expanded="false">
                     <span><?= e(strtoupper(substr(Auth::nom() ?: Auth::role(), 0, 1))) ?></span>
-                    <strong><?= e(Auth::role() ?: 'Utilisateur') ?></strong>
+                    <div class="flex flex-col items-start">
+                        <strong><?= e(Auth::nom() ?: Auth::role() ?: 'Utilisateur') ?></strong>
+                        <?php if (Auth::role()): ?>
+                            <small class="text-xs text-slate-500"><?= e(Auth::role()) ?></small>
+                        <?php endif; ?>
+                    </div>
                     <i data-lucide="chevron-down"></i>
                 </a>
                 <div class="app-dropdown-menu" aria-labelledby="userDropdown">
