@@ -1,4 +1,12 @@
 <?php
+    $transactions = $transactions ?? [];
+    $services = $services ?? [];
+    $mois = $mois ?? (int)date('m');
+    $annee = $annee ?? (int)date('Y');
+    $report_type = $report_type ?? 'monthly';
+    $report_date = $report_date ?? date('Y-m-d');
+    $period = $period ?? ['label' => ''];
+    $filtres = $filtres ?? ['id_service' => 0];
     $moisLabels = [1 => 'Janvier', 2 => 'Février', 3 => 'Mars', 4 => 'Avril', 5 => 'Mai', 6 => 'Juin', 7 => 'Juillet', 8 => 'Août', 9 => 'Septembre', 10 => 'Octobre', 11 => 'Novembre', 12 => 'Décembre'];
     $totalMontant = 0;
     foreach ($transactions as $tx) {
@@ -18,12 +26,14 @@
                 <input type="hidden" name="mois" value="<?= e($mois) ?>">
                 <input type="hidden" name="annee" value="<?= e($annee) ?>">
                 <input type="hidden" name="service" value="<?= e($filtres['id_service'] ?? '') ?>">
+                <input type="hidden" name="report_type" value="<?= e($report_type ?? 'monthly') ?>">
+                <input type="hidden" name="date" value="<?= e($report_date ?? date('Y-m-d')) ?>">
                 <select name="format" class="bk-select">
                     <option value="csv">CSV</option>
                     <option value="pdf">PDF</option>
-                    <option value="xlsx">Excel (.xls)</option>
                     <option value="json">JSON</option>
                     <option value="html">HTML</option>
+                    <option value="xls">Excel (.xls)</option>
                 </select>
                 <button type="submit" class="bk-btn bk-btn-primary">
                     <i data-lucide="download"></i> Exporter
@@ -77,7 +87,7 @@
         <article class="bk-kpi amber">
             <div class="bk-kpi-icon"><i data-lucide="calendar-check"></i></div>
             <p>Période</p>
-            <strong><?= e($moisLabels[(int)$mois] ?? $mois) ?></strong>
+            <strong><?= e($period['label'] ?? ($moisLabels[(int)$mois] ?? $mois)) ?></strong>
             <span><?= e($annee) ?></span>
         </article>
     </section>
@@ -89,13 +99,31 @@
         <div class="app-card-body">
             <form method="get" action="<?= url('rapports') ?>" class="bk-filter">
                 <div>
+                    <label class="bk-label">Type de rapport</label>
+                    <select name="report_type" class="bk-select">
+                        <option value="daily" <?= ($report_type ?? 'monthly') === 'daily' ? 'selected' : '' ?>>
+                            Journalier</option>
+                        <option value="weekly" <?= ($report_type ?? 'monthly') === 'weekly' ? 'selected' : '' ?>>
+                            Hebdomadaire</option>
+                        <option value="monthly" <?= ($report_type ?? 'monthly') === 'monthly' ? 'selected' : '' ?>>
+                            Mensuel</option>
+                        <option value="annual" <?= ($report_type ?? 'monthly') === 'annual' ? 'selected' : '' ?>>Annuel
+                        </option>
+                    </select>
+                </div>
+                <div>
+                    <label class="bk-label">Date de référence</label>
+                    <input type="date" name="date" class="bk-field" value="<?= e($report_date ?? date('Y-m-d')) ?>">
+                </div>
+                <div>
                     <label class="bk-label">Service</label>
                     <select name="service" class="bk-select">
                         <option value="">Tous les services</option>
                         <?php foreach ($services as $service): ?>
-                            <option value="<?= e($service['id_service']) ?>" <?= $service['id_service'] === ($filtres['id_service'] ?? 0) ? 'selected' : '' ?>>
-                                <?= e($service['nom']) ?>
-                            </option>
+                        <option value="<?= e($service['id_service']) ?>"
+                            <?= $service['id_service'] === ($filtres['id_service'] ?? 0) ? 'selected' : '' ?>>
+                            <?= e($service['nom']) ?>
+                        </option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -103,7 +131,8 @@
                     <label class="bk-label">Mois</label>
                     <select name="mois" class="bk-select">
                         <?php foreach ($moisLabels as $key => $label): ?>
-                            <option value="<?= e($key) ?>" <?= $key === (int)$mois ? 'selected' : '' ?>><?= e($label) ?></option>
+                        <option value="<?= e($key) ?>" <?= $key === (int)$mois ? 'selected' : '' ?>><?= e($label) ?>
+                        </option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -128,75 +157,75 @@
         </div>
         <div class="app-card-body p-0">
             <?php if (empty($transactions)): ?>
-                <div class="bk-empty">
-                    <i data-lucide="inbox"></i>
-                    <strong>Aucune transaction trouvée</strong>
-                    <span>Ajustez les filtres pour générer un rapport.</span>
-                </div>
+            <div class="bk-empty">
+                <i data-lucide="inbox"></i>
+                <strong>Aucune transaction trouvée</strong>
+                <span>Ajustez les filtres pour générer un rapport.</span>
+            </div>
             <?php else: ?>
-                <div class="overflow-x-auto">
-                    <table class="app-table table-mobile-details bk-table-min">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Date</th>
-                                <th>Service</th>
-                                <th>Type</th>
-                                <th class="text-right">Montant</th>
-                                <th class="hidden md:table-cell">Agent</th>
-                                <th>Statut</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($transactions as $tx): ?>
-                                <tr>
-                                    <td class="text-xs text-slate-500">#<?= e($tx['id_transaction']) ?></td>
-                                    <td><?= e(formatDate($tx['date_heure'])) ?></td>
-                                    <td class="font-semibold text-slate-800"><?= e($tx['nom_service']) ?></td>
-                                    <td><?= e($tx['libelle_type']) ?></td>
-                                    <td class="text-right font-semibold"><?= e(formatMontant((float)$tx['montant'])) ?></td>
-                                    <td class="hidden md:table-cell"><?= e($tx['nom_agent']) ?></td>
-                                    <td><span class="bk-status neutral"><?= e($tx['statut']) ?></span></td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
+            <div class="overflow-x-auto">
+                <table class="app-table table-mobile-details bk-table-min">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Date</th>
+                            <th>Service</th>
+                            <th>Type</th>
+                            <th class="text-right">Montant</th>
+                            <th class="hidden md:table-cell">Agent</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($transactions as $tx): ?>
+                        <tr>
+                            <td class="text-xs text-slate-500">#<?= e($tx['id_transaction']) ?></td>
+                            <td><?= e(formatDate($tx['date_heure'])) ?></td>
+                            <td class="font-semibold text-slate-800"><?= e($tx['nom_service']) ?></td>
+                            <td><?= e($tx['libelle_type']) ?></td>
+                            <td class="text-right font-semibold"><?= e(formatMontant((float)$tx['montant'])) ?></td>
+                            <td class="hidden md:table-cell"><?= e($tx['nom_agent']) ?></td>
+                            <td><span class="bk-status neutral"><?= e($tx['statut']) ?></span></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
             <?php endif; ?>
         </div>
     </section>
 
     <?php if (!empty($benefices)): ?>
-        <section class="app-card">
-            <div class="app-card-header">
-                <span><i data-lucide="trending-up"></i> Bénéfices par service</span>
+    <section class="app-card">
+        <div class="app-card-header">
+            <span><i data-lucide="trending-up"></i> Bénéfices par service</span>
+        </div>
+        <div class="app-card-body p-0">
+            <div class="overflow-x-auto">
+                <table class="app-table bk-table-min">
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>Catégorie</th>
+                            <th class="text-right">Commission</th>
+                            <th class="text-right">Bénéfice</th>
+                            <th class="text-right">Perte</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($benefices as $benefice): ?>
+                        <tr>
+                            <td class="font-semibold text-slate-800"><?= e($benefice['nom_service']) ?></td>
+                            <td><?= e($benefice['categorie']) ?></td>
+                            <td class="text-right"><?= e(formatMontant((float)$benefice['total_commission'])) ?></td>
+                            <td class="text-right"><?= e(formatMontant((float)$benefice['total_benefice'])) ?></td>
+                            <td class="text-right"><?= e(formatMontant((float)$benefice['total_perte'])) ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
             </div>
-            <div class="app-card-body p-0">
-                <div class="overflow-x-auto">
-                    <table class="app-table bk-table-min">
-                        <thead>
-                            <tr>
-                                <th>Service</th>
-                                <th>Catégorie</th>
-                                <th class="text-right">Commission</th>
-                                <th class="text-right">Bénéfice</th>
-                                <th class="text-right">Perte</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($benefices as $benefice): ?>
-                                <tr>
-                                    <td class="font-semibold text-slate-800"><?= e($benefice['nom_service']) ?></td>
-                                    <td><?= e($benefice['categorie']) ?></td>
-                                    <td class="text-right"><?= e(formatMontant((float)$benefice['total_commission'])) ?></td>
-                                    <td class="text-right"><?= e(formatMontant((float)$benefice['total_benefice'])) ?></td>
-                                    <td class="text-right"><?= e(formatMontant((float)$benefice['total_perte'])) ?></td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
+        </div>
+    </section>
     <?php endif; ?>
 </div>

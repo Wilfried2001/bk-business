@@ -203,8 +203,6 @@ CREATE TABLE transaction (
                             'ANNULEE'
                         )               NOT NULL DEFAULT 'VALIDEE',
     updated_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    commission          DECIMAL(15,2)   NOT NULL DEFAULT 0.00,
-    frais_operation     DECIMAL(15,2)   NOT NULL DEFAULT 0.00,
     note                TEXT            NULL,
     PRIMARY KEY (id_transaction),
     CONSTRAINT fk_tx_service    FOREIGN KEY (id_service)  REFERENCES service(id_service),
@@ -404,6 +402,38 @@ GROUP BY
 
 
 -- ============================================================
+-- 13. VUE : transaction_avec_commission
+--     Remplace l'usage des anciennes colonnes transaction.commission
+--     et transaction.frais_operation, supprimées car redondantes.
+--     La commission affichée provient uniquement de commission_transaction,
+--     qui reste la seule source de vérité.
+-- ============================================================
+CREATE OR REPLACE VIEW transaction_avec_commission AS
+SELECT
+    t.id_transaction,
+    t.reference,
+    t.id_service,
+    s.nom                              AS nom_service,
+    t.id_type,
+    top.libelle                        AS libelle_type,
+    t.montant,
+    t.statut,
+    t.created_at,
+    COALESCE(SUM(ct.montant_commission), 0)                              AS commission_totale,
+    COALESCE(SUM(CASE WHEN ct.source = 'OPERATEUR'
+                       THEN ct.montant_commission ELSE 0 END), 0)        AS commission_operateur,
+    COALESCE(SUM(CASE WHEN ct.source = 'CLIENT'
+                       THEN ct.montant_commission ELSE 0 END), 0)        AS commission_client
+FROM transaction t
+JOIN service s                  ON s.id_service = t.id_service
+JOIN type_operation top          ON top.id_type  = t.id_type
+LEFT JOIN commission_transaction ct ON ct.id_transaction = t.id_transaction
+GROUP BY
+    t.id_transaction, t.reference, t.id_service, s.nom,
+    t.id_type, top.libelle, t.montant, t.statut, t.created_at;
+
+
+-- ============================================================
 -- DONNÉES DE RÉFÉRENCE
 -- ============================================================
 
@@ -514,15 +544,20 @@ INSERT INTO commission_tranche (id_config, montant_min, montant_max, montant_fix
 ((SELECT id_config FROM commission_config WHERE id_service = 2 AND id_type = 5 AND source = 'CLIENT'), 50000.01, NULL, 500.00);
 
 -- Transactions fictives
-INSERT INTO transaction (id_service, id_type, id_user, agence, id_agence, reference, nom_expediteur, nom_benefis, code_operation, nature_operation, produit, type_de_operation, montant, motif_transaction, nature_transaction, type_mouvement, affecte_stock, affecte_caisse, notes, statut, commission, frais_operation, note) VALUES
-(1, 1, 4, 'Agence Centre', 1, 'OMD-2026-001', 'Franck Mbarga', 'Claire Ndongo', 'OMD001', 'Depot', 'Orange Money', 'Dépôt mobile', 120000.00, 'Dépôt espèces client', 'FINANCIER', 'ENTREE', 0, 1, 'Client a déposé de l''argent en agence', 'VALIDEE', 1800.00, 500.00, 'Commission opérateur'),
-(1, 2, 4, 'Agence Centre', 1, 'OMR-2026-002', 'Joseph Keng', 'Mireille Tchame', 'OMR002', 'Retrait', 'Orange Money', 'Retrait mobile', 35000.00, 'Retrait d''argent pour client', 'FINANCIER', 'SORTIE', 0, 1, 'Retrait réseau Orange', 'VALIDEE', 250.00, 300.00, 'Commission fixe'),
-(2, 5, 3, 'Agence Marché', 2, 'MTN-PAY-003', 'Sandra Mba', 'Ecole Sainte Marie', 'MTNP003', 'Paiement', 'MTN Money', 'Paiement facture', 25000.00, 'Paiement facture scolaire', 'FINANCIER', 'ENTREE', 0, 1, 'Paiement élève', 'VALIDEE', 300.00, 200.00, 'Commission tranche'),
-(3, 3, 4, 'Agence Marché', 2, 'RIA-ENVOI-004', 'Jean-Paul Etoundi', 'Antonio Silva', 'RIA004', 'Envoi', 'Ria', 'Transfert international', 180000.00, 'Envoi vers le Cameroun', 'FINANCIER', 'ENTREE', 0, 1, 'Transfert Ria vers Douala', 'VALIDEE', 1350.00, 600.00, 'Commission opérateur'),
-(3, 4, 4, 'Agence Marché', 2, 'RIA-RECP-005', 'Aicha Kotto', 'Samuel N.', 'RIA005', 'Reception', 'Ria', 'Reception international', 100000.00, 'Réception fonds international', 'FINANCIER', 'SORTIE', 0, 1, 'Reception de fonds', 'VALIDEE', 750.00, 400.00, 'Commission opérateur'),
-(9, 6, 4, 'Agence Airport', 3, 'CNL-2026-006', 'Monique Fokam', 'Canal+ Service', 'CNL006', 'Reabonnement', 'Canal+', 'Abonnement TV', 7000.00, 'Reabonnement bouquet Canal+', 'FINANCIER', 'ENTREE', 0, 1, 'Reabonnement client', 'VALIDEE', 500.00, 100.00, 'Commission fixe'),
-(10, 5, 3, 'Agence Airport', 3, 'ENEO-2026-007', 'Pierre Ngu', 'Société ENEO', 'ENEO007', 'Paiement', 'ENEO', 'Paiement facture', 20000.00, 'Paiement facture ENEO', 'FINANCIER', 'ENTREE', 0, 1, 'Paiement électricité', 'VALIDEE', 400.00, 150.00, 'Commission fixe'),
-(11, 1, 2, 'Agence Downtown', 4, 'DHL-DEP-008', 'Emmanuel T.', 'Client DHL', 'DHL008', 'Depot', 'DHL', 'Dépôt colis', 35000.00, 'Dépôt frais DHL', 'FINANCIER', 'ENTREE', 0, 1, 'Dépôt pour envoi colis', 'VALIDEE', 437.50, 250.00, 'Commission client');
+-- Note : les colonnes "commission" et "frais_operation" ont été retirées.
+-- La commission de chaque transaction est désormais exclusivement
+-- enregistrée dans la table commission_transaction (voir plus bas),
+-- qui reste l'unique source de vérité pour ces montants.
+INSERT INTO transaction (id_service, id_type, id_user, agence, id_agence, reference, nom_expediteur, nom_benefis, code_operation, nature_operation, produit, type_de_operation, montant, motif_transaction, nature_transaction, type_mouvement, affecte_stock, affecte_caisse, notes, statut, note) VALUES
+(1, 1, 4, 'Agence Centre', 1, 'OMD-2026-001', 'Franck Mbarga', 'Claire Ndongo', 'OMD001', 'Depot', 'Orange Money', 'Dépôt mobile', 120000.00, 'Dépôt espèces client', 'FINANCIER', 'ENTREE', 0, 1, 'Client a déposé de l''argent en agence', 'VALIDEE', 'Commission opérateur'),
+(1, 2, 4, 'Agence Centre', 1, 'OMR-2026-002', 'Joseph Keng', 'Mireille Tchame', 'OMR002', 'Retrait', 'Orange Money', 'Retrait mobile', 35000.00, 'Retrait d''argent pour client', 'FINANCIER', 'SORTIE', 0, 1, 'Retrait réseau Orange', 'VALIDEE', 'Commission fixe'),
+(2, 5, 3, 'Agence Marché', 2, 'MTN-PAY-003', 'Sandra Mba', 'Ecole Sainte Marie', 'MTNP003', 'Paiement', 'MTN Money', 'Paiement facture', 25000.00, 'Paiement facture scolaire', 'FINANCIER', 'ENTREE', 0, 1, 'Paiement élève', 'VALIDEE', 'Commission tranche'),
+(3, 3, 4, 'Agence Marché', 2, 'RIA-ENVOI-004', 'Jean-Paul Etoundi', 'Antonio Silva', 'RIA004', 'Envoi', 'Ria', 'Transfert international', 180000.00, 'Envoi vers le Cameroun', 'FINANCIER', 'ENTREE', 0, 1, 'Transfert Ria vers Douala', 'VALIDEE', 'Commission opérateur'),
+(3, 4, 4, 'Agence Marché', 2, 'RIA-RECP-005', 'Aicha Kotto', 'Samuel N.', 'RIA005', 'Reception', 'Ria', 'Reception international', 100000.00, 'Réception fonds international', 'FINANCIER', 'SORTIE', 0, 1, 'Reception de fonds', 'VALIDEE', 'Commission opérateur'),
+(9, 6, 4, 'Agence Airport', 3, 'CNL-2026-006', 'Monique Fokam', 'Canal+ Service', 'CNL006', 'Reabonnement', 'Canal+', 'Abonnement TV', 7000.00, 'Reabonnement bouquet Canal+', 'FINANCIER', 'ENTREE', 0, 1, 'Reabonnement client', 'VALIDEE', 'Commission fixe'),
+(10, 5, 3, 'Agence Airport', 3, 'ENEO-2026-007', 'Pierre Ngu', 'Société ENEO', 'ENEO007', 'Paiement', 'ENEO', 'Paiement facture', 20000.00, 'Paiement facture ENEO', 'FINANCIER', 'ENTREE', 0, 1, 'Paiement électricité', 'VALIDEE', 'Commission fixe'),
+(11, 1, 2, 'Agence Downtown', 4, 'DHL-DEP-008', 'Emmanuel T.', 'Client DHL', 'DHL008', 'Depot', 'DHL', 'Dépôt colis', 35000.00, 'Dépôt frais DHL', 'FINANCIER', 'ENTREE', 0, 1, 'Dépôt pour envoi colis', 'VALIDEE', 'Commission client');
+
 
 -- Mouvements de soldes liés aux transactions fictives
 INSERT INTO mouvement_solde (id_transaction, id_solde, nature, montant, solde_avant, solde_apres, motif) VALUES
