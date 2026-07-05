@@ -14,11 +14,14 @@ class DashboardController extends Controller {
         require_once APP_PATH . '/models/SoldeService.php';
         require_once APP_PATH . '/models/AlerteSolde.php';
         require_once APP_PATH . '/models/CommissionTransaction.php';
+        require_once APP_PATH . '/models/Agence.php';
 
         $txModel      = new Transaction();
         $soldeModel   = new SoldeService();
         $alerteModel  = new AlerteSolde();
         $commModel    = new CommissionTransaction();
+        $agenceModel  = new Agence();
+        $agencyId = AgencyContext::resolveAgencyId();
 
         $nbHier = (int)($txModel->queryOne("
             SELECT COUNT(*) AS nb
@@ -27,7 +30,8 @@ class DashboardController extends Controller {
             WHERE DATE(t.created_at) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)
               AND t.statut = 'VALIDEE'
               AND to2.libelle != 'AJUSTEMENT'
-        ")['nb'] ?? 0);
+              AND (? IS NULL OR t.id_agence = ?)
+        ", [$agencyId, $agencyId])['nb'] ?? 0);
 
         $totalHier = (float)($txModel->queryOne("
             SELECT COALESCE(SUM(t.montant), 0) AS total
@@ -36,17 +40,19 @@ class DashboardController extends Controller {
             WHERE DATE(t.created_at) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)
               AND t.statut = 'VALIDEE'
               AND to2.libelle != 'AJUSTEMENT'
-        ")['total'] ?? 0);
+              AND (? IS NULL OR t.id_agence = ?)
+        ", [$agencyId, $agencyId])['total'] ?? 0);
 
         $nbTransactionsJour = $txModel->getNbJour();
         $totalMontantJour = $txModel->getTotalJour();
-        $soldes = $soldeModel->getAllAvecSeuils();
-        $alertesActives = $alerteModel->getActives();
+        $soldes = $soldeModel->getAllAvecSeuils($agencyId);
+        $alertesActives = $alerteModel->getActives($agencyId);
 
         $data = [
+            'agences'              => $agenceModel->getAllActives(),
             'nbTransactionsJour'   => $nbTransactionsJour,
             'totalMontantJour'     => $totalMontantJour,
-            'nbAlertesActives'     => $alerteModel->compterActives(),
+            'nbAlertesActives'     => $alerteModel->compterActives($agencyId),
             'alertesActives'       => $this->prioriserAlertes($alertesActives),
             'soldes'               => $soldes,
             'soldesParService'     => $this->grouperSoldesParService($soldes),
@@ -55,6 +61,7 @@ class DashboardController extends Controller {
             'dernièresTransactions' => $txModel->getAllWithDetails([
                 'limit' => 10,
                 'exclude_adjustments' => true,
+                'id_agence' => $agencyId,
             ]),
         ];
 
@@ -66,9 +73,9 @@ class DashboardController extends Controller {
             $data['rentabiliteMois']       = $this->calculerRentabilite($txModel, (float)$data['totalCommissionsMois']);
         }
 
-        $data['topServicesUsage']      = $txModel->getTopServicesByUsage(5);
-        $data['topServicesMontant']    = $txModel->getTopServicesByMontant(5);
-        $data['topAlertServices']      = $alerteModel->getTopServicesByAlertCount(5);
+        $data['topServicesUsage']      = $txModel->getTopServicesByUsage(5, $agencyId);
+        $data['topServicesMontant']    = $txModel->getTopServicesByMontant(5, $agencyId);
+        $data['topAlertServices']      = $alerteModel->getTopServicesByAlertCount(5, $agencyId);
 
         // Données graphiques : transactions des 30 derniers jours
         $rows = $txModel->query(
@@ -78,8 +85,10 @@ class DashboardController extends Controller {
              WHERE DATE(t.created_at) >= DATE_SUB(CURDATE(), INTERVAL 29 DAY)
                AND t.statut = 'VALIDEE'
                AND to2.libelle != 'AJUSTEMENT'
+               AND (? IS NULL OR t.id_agence = ?)
              GROUP BY day
-             ORDER BY day ASC"
+             ORDER BY day ASC",
+            [$agencyId, $agencyId]
         );
 
         $labels = [];

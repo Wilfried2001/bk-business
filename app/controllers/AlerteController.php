@@ -13,7 +13,7 @@ class AlerteController extends Controller {
 
         $alerteModel = new AlerteSolde();
         $this->render('alertes/index', [
-            'alertes' => $alerteModel->getActives(),
+            'alertes' => $alerteModel->getActives(AgencyContext::resolveAgencyId()),
         ], 'Alertes de stock');
     }
 

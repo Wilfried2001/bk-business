@@ -50,6 +50,9 @@ class AuthController extends Controller {
             $this->clearLoginAttempts($email, $ipAddress, $attemptModel);
             Auth::login($user);
             $this->handlePostLoginPresence($user);
+            if (!empty($user['id_agence'])) {
+                AgencyContext::setCurrentAgencyId((int)$user['id_agence']);
+            }
             Session::flash('success', 'Bienvenue, ' . $user['nom'] . ' !');
             $this->redirect('dashboard');
         }

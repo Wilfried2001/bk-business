@@ -29,6 +29,10 @@ class Transaction extends Model {
             $where[]  = 't.id_type = ?';
             $params[] = $filtres['id_type'];
         }
+        if (!empty($filtres['id_agence'])) {
+            $where[]  = 't.id_agence = ?';
+            $params[] = $filtres['id_agence'];
+        }
         if (!empty($filtres['statut'])) {
             $where[]  = 't.statut = ?';
             $params[] = $filtres['statut'];
@@ -74,9 +78,8 @@ class Transaction extends Model {
     }
 
 // Méthode getTopServicesByUsage : services les plus utilisés.
-    public function getTopServicesByUsage(int $limit = 5): array {
-        return $this->query(
-            "
+    public function getTopServicesByUsage(int $limit = 5, ?int $agencyId = null): array {
+        $sql = "
             SELECT s.id_service, s.nom AS nom_service, s.categorie,
                    COUNT(*) AS total_transactions,
                    SUM(t.montant) AS total_montant
@@ -85,16 +88,20 @@ class Transaction extends Model {
             JOIN type_operation to2 ON to2.id_type = t.id_type
             WHERE t.statut = 'VALIDEE'
               AND to2.libelle != 'AJUSTEMENT'
-            GROUP BY s.id_service, s.nom, s.categorie
-            ORDER BY total_transactions DESC
-            LIMIT ?
-        ", [$limit]);
+        ";
+        $params = [];
+        if ($agencyId !== null) {
+            $sql .= " AND t.id_agence = ?";
+            $params[] = $agencyId;
+        }
+        $sql .= " GROUP BY s.id_service, s.nom, s.categorie ORDER BY total_transactions DESC LIMIT ?";
+        $params[] = $limit;
+        return $this->query($sql, $params);
     }
 
 // Méthode getTopServicesByMontant : services les plus lourds en montant.
-    public function getTopServicesByMontant(int $limit = 5): array {
-        return $this->query(
-            "
+    public function getTopServicesByMontant(int $limit = 5, ?int $agencyId = null): array {
+        $sql = "
             SELECT s.id_service, s.nom AS nom_service, s.categorie,
                    COUNT(*) AS total_transactions,
                    SUM(t.montant) AS total_montant
@@ -103,15 +110,20 @@ class Transaction extends Model {
             JOIN type_operation to2 ON to2.id_type = t.id_type
             WHERE t.statut = 'VALIDEE'
               AND to2.libelle != 'AJUSTEMENT'
-            GROUP BY s.id_service, s.nom, s.categorie
-            ORDER BY total_montant DESC
-            LIMIT ?
-        ", [$limit]);
+        ";
+        $params = [];
+        if ($agencyId !== null) {
+            $sql .= " AND t.id_agence = ?";
+            $params[] = $agencyId;
+        }
+        $sql .= " GROUP BY s.id_service, s.nom, s.categorie ORDER BY total_montant DESC LIMIT ?";
+        $params[] = $limit;
+        return $this->query($sql, $params);
     }
 
 // Méthode getWithDetails : gère getWithDetails. 
-    public function getWithDetails(int $id): ?array {
-        return $this->queryOne("
+    public function getWithDetails(int $id, ?int $agencyId = null): ?array {
+        $sql = "
             SELECT t.*, t.created_at AS date_heure,
                    s.nom       AS nom_service, s.categorie,
                    to2.libelle AS libelle_type,
@@ -124,32 +136,50 @@ class Transaction extends Model {
             JOIN utilisateur    u   ON u.id_user    = t.id_user
             LEFT JOIN agence    a   ON a.id_agence  = t.id_agence
             WHERE t.id_transaction = ?
-        ", [$id]);
+        ";
+        $params = [$id];
+        if ($agencyId !== null) {
+            $sql .= " AND t.id_agence = ?";
+            $params[] = $agencyId;
+        }
+        return $this->queryOne($sql, $params);
     }
 
 // Méthode getTotalJour : gère getTotalJour. 
-    public function getTotalJour(): float {
-        $result = $this->queryOne("
+    public function getTotalJour(?int $agencyId = null): float {
+        $sql = "
             SELECT COALESCE(SUM(t.montant), 0) AS total
             FROM transaction t
             JOIN type_operation to2 ON to2.id_type = t.id_type
             WHERE DATE(t.created_at) = CURDATE()
               AND t.statut = 'VALIDEE'
               AND to2.libelle != 'AJUSTEMENT'
-        ");
+        ";
+        $params = [];
+        if ($agencyId !== null) {
+            $sql .= " AND t.id_agence = ?";
+            $params[] = $agencyId;
+        }
+        $result = $this->queryOne($sql, $params);
         return (float) ($result['total'] ?? 0);
     }
 
 // Méthode getNbJour : gère getNbJour. 
-    public function getNbJour(): int {
-        $result = $this->queryOne("
+    public function getNbJour(?int $agencyId = null): int {
+        $sql = "
             SELECT COUNT(*) AS nb
             FROM transaction t
             JOIN type_operation to2 ON to2.id_type = t.id_type
             WHERE DATE(t.created_at) = CURDATE()
               AND t.statut = 'VALIDEE'
               AND to2.libelle != 'AJUSTEMENT'
-        ");
+        ";
+        $params = [];
+        if ($agencyId !== null) {
+            $sql .= " AND t.id_agence = ?";
+            $params[] = $agencyId;
+        }
+        $result = $this->queryOne($sql, $params);
         return (int) ($result['nb'] ?? 0);
     }
 }

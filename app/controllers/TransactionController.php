@@ -20,6 +20,10 @@ class TransactionController extends Controller {
             'date_debut'  => $this->get('date_debut'),
             'date_fin'    => $this->get('date_fin'),
         ];
+        $agencyId = AgencyContext::resolveAgencyId();
+        if ($agencyId !== null) {
+            $filtres['id_agence'] = $agencyId;
+        }
 
         $txModel      = new Transaction();
         $serviceModel = new Service();
@@ -119,7 +123,8 @@ class TransactionController extends Controller {
         $idService = (int) $idService;
         $idType    = (int) $idType;
         $montant   = (float) str_replace(',', '.', $montant);
-        $idAgence  = $idAgence !== '' && $idAgence !== null ? (int)$idAgence : null;
+        $agencyId = AgencyContext::resolveAgencyId();
+        $idAgence  = $idAgence !== '' && $idAgence !== null ? (int)$idAgence : $agencyId;
 
         // Chargement des modèles
         require_once APP_PATH . '/models/Transaction.php';
@@ -204,7 +209,7 @@ class TransactionController extends Controller {
 
             // 3. Mettre à jour Float si impacté
             if ($typeOp['impact_float'] !== 0) {
-                $soldeFloat = $soldeModel->getSolde($idService, 'FLOAT');
+                $soldeFloat = $soldeModel->getSolde($idService, 'FLOAT', $agencyId);
                 if ($soldeFloat) {
                     $nature    = $typeOp['impact_float'] > 0 ? 'CREDIT' : 'DEBIT';
                     $resultats = $soldeModel->mettreAJour($soldeFloat['id_solde'], $montant, $nature);
@@ -228,7 +233,7 @@ class TransactionController extends Controller {
 
             // 4. Mettre à jour Caisse si impactée
             if ($typeOp['impact_caisse'] !== 0) {
-                $soldeCaisse = $soldeModel->getSolde($idService, 'CAISSE');
+                $soldeCaisse = $soldeModel->getSolde($idService, 'CAISSE', $agencyId);
                 if ($soldeCaisse) {
                     $nature    = $typeOp['impact_caisse'] > 0 ? 'CREDIT' : 'DEBIT';
                     $resultats = $soldeModel->mettreAJour($soldeCaisse['id_solde'], $montant, $nature);

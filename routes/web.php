@@ -11,6 +11,7 @@ $router->get( '/auth/logout', 'Auth', 'logout', ['AGENT', 'SUPERVISEUR', 'COMPTA
 // ── Dashboard ────────────────────────────────────────────────
 $router->get('/dashboard',    'Dashboard', 'index', ['AGENT', 'SUPERVISEUR', 'COMPTABLE', 'DG']);
 $router->get('/',             'Dashboard', 'index', ['AGENT', 'SUPERVISEUR', 'COMPTABLE', 'DG']);
+$router->post('/agency/switch', 'Agency', 'switchAgency', ['AGENT', 'SUPERVISEUR', 'COMPTABLE', 'DG']);
 
 // ── Transactions ─────────────────────────────────────────────
 $router->get( '/transactions',           'Transaction', 'index', ['AGENT', 'SUPERVISEUR', 'DG']);
@@ -27,6 +28,14 @@ $router->get('/stocks/:id',       'Stock', 'show', ['SUPERVISEUR', 'COMPTABLE', 
 $router->post('/stocks/:id/seuil','Stock', 'saveThreshold', ['SUPERVISEUR', 'COMPTABLE', 'DG']);
 // Mettre à jour le montant actuel d'un solde (initial ou ajustement)
 $router->post('/stocks/:id/solde','Stock', 'updateSolde', ['SUPERVISEUR', 'COMPTABLE', 'DG']);
+
+// ── Transferts de float ──────────────────────────────────────
+$router->get('/transferts-float',              'TransfertFloat', 'index', ['AGENT', 'SUPERVISEUR', 'DG']);
+$router->get('/transferts-float/create',       'TransfertFloat', 'create', ['AGENT', 'SUPERVISEUR', 'DG']);
+$router->post('/transferts-float/store',       'TransfertFloat', 'store', ['AGENT', 'SUPERVISEUR', 'DG']);
+$router->get('/transferts-float/:id',          'TransfertFloat', 'show', ['AGENT', 'SUPERVISEUR', 'DG']);
+$router->post('/transferts-float/:id/approve', 'TransfertFloat', 'approve', ['SUPERVISEUR', 'DG']);
+$router->post('/transferts-float/:id/reject',  'TransfertFloat', 'reject', ['SUPERVISEUR', 'DG']);
 
 // Définir les stocks initiaux pour tous les services (formulaire global)
 $router->get('/stocks/define',  'Stock', 'defineForm', ['SUPERVISEUR', 'COMPTABLE', 'DG']);

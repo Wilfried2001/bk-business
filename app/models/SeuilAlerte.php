@@ -80,16 +80,19 @@ class SeuilAlerte extends Model {
     }
 
 // Méthode getHistoryByService : gère getHistoryByService. 
-    public function getHistoryByService(int $idService): array {
-        return $this->query(
-            "SELECT h.*, ss.type_solde, u.nom AS modifie_par_nom
+    public function getHistoryByService(int $idService, ?int $agencyId = null): array {
+        $sql = "SELECT h.*, ss.type_solde, u.nom AS modifie_par_nom
              FROM seuil_alerte_historique h
              JOIN seuil_alerte s ON s.id_seuil = h.id_seuil
              JOIN solde_service ss ON ss.id_solde = s.id_solde
              LEFT JOIN utilisateur u ON u.id_user = h.id_user
-             WHERE ss.id_service = ?
-             ORDER BY h.date_modification DESC",
-            [$idService]
-        );
+             WHERE ss.id_service = ?";
+        $params = [$idService];
+        if ($agencyId !== null) {
+            $sql .= " AND ss.id_agence = ?";
+            $params[] = $agencyId;
+        }
+        $sql .= " ORDER BY h.date_modification DESC";
+        return $this->query($sql, $params);
     }
 }

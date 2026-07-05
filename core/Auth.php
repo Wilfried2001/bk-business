@@ -10,6 +10,7 @@ class Auth {
         Session::set('user_nom',  $user['nom']);
         Session::set('user_role', $user['role']);
         Session::set('logged_in', true);
+        Session::set('current_agency_id', $user['id_agence'] ?? null);
         Session::regenerate();
     }
 
@@ -87,7 +88,8 @@ class Auth {
         return [
             'id' => self::id(),
             'nom' => self::nom(),
-            'role' => self::role()
+            'role' => self::role(),
+            'id_agence' => AgencyContext::getCurrentAgencyId(),
         ];
     }
 }

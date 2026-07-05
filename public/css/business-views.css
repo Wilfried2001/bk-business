@@ -657,3 +657,100 @@
         grid-template-columns: 1fr;
     }
 }
+
+body.theme-dark .bk-page,
+body.theme-dark .bk-head,
+body.theme-dark .bk-kpi,
+body.theme-dark .bk-choice,
+body.theme-dark .bk-empty,
+body.theme-dark .bk-filter,
+body.theme-dark .bk-stepper,
+body.theme-dark .tx-stepper,
+body.theme-dark .tx-card,
+body.theme-dark .tx-operation-grid,
+body.theme-dark .tx-service-grid,
+body.theme-dark .bk-report-types,
+body.theme-dark .bk-service-grid {
+    color: #f8fafc;
+}
+
+body.theme-dark .bk-head h1,
+body.theme-dark .bk-kpi strong,
+body.theme-dark .bk-empty strong,
+body.theme-dark .bk-choice strong,
+body.theme-dark .tx-card strong {
+    color: #f8fafc;
+}
+
+body.theme-dark .bk-eyebrow,
+body.theme-dark .bk-kpi p,
+body.theme-dark .bk-kpi span,
+body.theme-dark .bk-head p:not(.bk-eyebrow),
+body.theme-dark .bk-label,
+body.theme-dark .bk-empty,
+body.theme-dark .tx-step-title,
+body.theme-dark .tx-stepper .tx-step,
+body.theme-dark .tx-stepper-six .tx-step {
+    color: #cbd5e1;
+}
+
+body.theme-dark .bk-btn-secondary,
+body.theme-dark .bk-btn-danger,
+body.theme-dark .bk-field,
+body.theme-dark .bk-select,
+body.theme-dark .bk-kpi,
+body.theme-dark .bk-choice,
+body.theme-dark .bk-empty,
+body.theme-dark .tx-card,
+body.theme-dark .tx-stepper .tx-step,
+body.theme-dark .tx-stepper-six .tx-step {
+    background: #111827;
+    border-color: rgba(148, 163, 184, 0.24);
+    color: #f8fafc;
+}
+
+body.theme-dark .bk-btn-secondary:hover,
+body.theme-dark .bk-btn-danger:hover {
+    background: #1f2937;
+}
+
+body.theme-dark .bk-kpi-icon {
+    background: rgba(99, 102, 241, 0.2);
+    color: #c7d2fe;
+}
+
+body.theme-dark .bk-status.neutral {
+    background: rgba(30, 41, 59, 0.9);
+    color: #e2e8f0;
+}
+
+body.theme-dark .bk-page .app-card,
+body.theme-dark .bk-page .app-card-header,
+body.theme-dark .bk-page .app-card-body {
+    background-color: #111827;
+    color: #f8fafc;
+    border-color: rgba(148, 163, 184, 0.2);
+}
+
+body.theme-dark .bk-page .app-card-header {
+    background-color: #1f2937;
+}
+
+body.theme-dark .bk-page .app-table thead th,
+body.theme-dark .bk-page .app-table tbody td {
+    color: #f8fafc;
+    border-color: rgba(148, 163, 184, 0.16);
+}
+
+body.theme-dark .bk-page .app-table tbody tr:hover {
+    background-color: rgba(30, 41, 59, 0.76);
+}
+
+body.theme-dark .bk-page .bk-muted {
+    color: #cbd5e1;
+}
+
+body.theme-dark .bk-page .app-badge-secondary {
+    background-color: rgba(30, 41, 59, 0.9);
+    color: #e2e8f0;
+}

@@ -27,7 +27,7 @@ class AgentIAController extends Controller {
     public function ask(): void {
         Auth::requireRole(['AGENT', 'SUPERVISEUR', 'COMPTABLE', 'DG']);
 
-        $input = json_decode(file_get_contents('php://input'), true);
+        $input = json_decode($this->getRawInput(), true);
         if (!is_array($input) || json_last_error() !== JSON_ERROR_NONE) {
             $this->json(['success' => false, 'error' => 'Requête JSON invalide'], 400);
         }
@@ -63,6 +63,14 @@ class AgentIAController extends Controller {
             ]);
 
         } catch (Throwable $e) {
+            // Lors des tests, les stubs de `json()` peuvent lancer une exception
+            // marquée 'Test response sent'. Dans ce cas, propager l'exception
+            // pour laisser le test capter la première réponse JSON et éviter
+            // d'écraser cette réponse avec l'erreur ici.
+            if ($e instanceof RuntimeException && $e->getMessage() === 'Test response sent') {
+                throw $e;
+            }
+
             $this->json([
                 'success' => false,
                 'error'   => $e->getMessage(),
@@ -73,14 +81,16 @@ class AgentIAController extends Controller {
     /**
      * Collecte toutes les données réelles de la base selon le rôle
      */
-    private function collecteDataRealtime(): array {
+    protected function collecteDataRealtime(): array {
         $user = Auth::user();
         $role = $user['role'] ?? 'AGENT';
+        $agencyId = AgencyContext::resolveAgencyId();
 
         $data = [
             'user' => $user,
+            'agency_id' => $agencyId,
             'entreprise' => $this->getEntrepriseProfil(),
-            'soldes' => $this->getSoldes(),
+            'soldes' => $this->getSoldes($agencyId),
             'alertes' => $this->getAlertes(),
             'transactions_jour' => $this->getTransactionsAujourdhui(),
             'historique_30j' => $this->getHistorique30j(),
@@ -100,7 +110,7 @@ class AgentIAController extends Controller {
     /**
      * Récupère l'état actuel des soldes (Float + Caisse)
      */
-    private function getSoldes(): array {
+    private function getSoldes(?int $agencyId = null): array {
         $query = "
             SELECT 
                 s.nom as service,
@@ -111,8 +121,15 @@ class AgentIAController extends Controller {
             JOIN service s ON ss.id_service = s.id_service
             LEFT JOIN seuil_alerte sa ON ss.id_solde = sa.id_solde
             WHERE s.actif = 1
-            ORDER BY s.nom, ss.type_solde
         ";
+
+        $params = [];
+        if ($agencyId !== null) {
+            $query .= " AND ss.id_agence = ?";
+            $params[] = $agencyId;
+        }
+
+        $query .= " ORDER BY s.nom, ss.type_solde";
 
         $stmt = $this->db->prepare($query);
         $stmt->execute();
@@ -138,6 +155,7 @@ class AgentIAController extends Controller {
      * Récupère les alertes actives
      */
     private function getAlertes(): array {
+        $agencyId = AgencyContext::resolveAgencyId();
         // Le schéma stocke le seuil dans `seuil_alerte` (lié à `solde_service`).
         // Jointure : alerte_solde -> seuil_alerte -> solde_service -> service
         $query = "
@@ -155,11 +173,18 @@ class AgentIAController extends Controller {
             JOIN solde_service ss ON sa.id_solde = ss.id_solde
             JOIN service s ON ss.id_service = s.id_service
             WHERE a.statut = 'ACTIVE'
-            ORDER BY a.date_alerte DESC
         ";
 
+        $params = [];
+        if ($agencyId !== null) {
+            $query .= " AND ss.id_agence = ?";
+            $params[] = $agencyId;
+        }
+
+        $query .= " ORDER BY a.date_alerte DESC";
+
         $stmt = $this->db->prepare($query);
-        $stmt->execute();
+        $stmt->execute($params);
         return $stmt->fetchAll();
     }
 
@@ -167,6 +192,7 @@ class AgentIAController extends Controller {
      * Récupère les transactions du jour
      */
     private function getTransactionsAujourdhui(): array {
+        $agencyId = AgencyContext::resolveAgencyId();
         $query = "
             SELECT 
                 COUNT(*) as nb_transactions,
@@ -177,12 +203,21 @@ class AgentIAController extends Controller {
             JOIN service s ON t.id_service = s.id_service
             WHERE DATE(t.created_at) = CURDATE()
             AND t.statut = 'VALIDEE'
+        ";
+
+        $params = [];
+        if ($agencyId !== null) {
+            $query .= " AND t.id_agence = ?";
+            $params[] = $agencyId;
+        }
+
+        $query .= "
             GROUP BY t.id_service, s.nom
             ORDER BY COUNT(*) DESC
         ";
 
         $stmt = $this->db->prepare($query);
-        $stmt->execute();
+        $stmt->execute($params);
         $resultats = $stmt->fetchAll();
 
         $nb_total = 0;
@@ -203,6 +238,7 @@ class AgentIAController extends Controller {
      * Récupère les commissions du mois courant
      */
     private function getCommissionsMois(): array {
+        $agencyId = AgencyContext::resolveAgencyId();
         $query = "
             SELECT 
                 SUM(ct.montant_commission) as total_commissions,
@@ -214,12 +250,21 @@ class AgentIAController extends Controller {
             WHERE YEAR(t.created_at) = YEAR(CURDATE())
             AND MONTH(t.created_at) = MONTH(CURDATE())
             AND t.statut = 'VALIDEE'
+        ";
+
+        $params = [];
+        if ($agencyId !== null) {
+            $query .= " AND t.id_agence = ?";
+            $params[] = $agencyId;
+        }
+
+        $query .= "
             GROUP BY t.id_service, s.nom
             ORDER BY SUM(ct.montant_commission) DESC
         ";
 
         $stmt = $this->db->prepare($query);
-        $stmt->execute();
+        $stmt->execute($params);
         $resultats = $stmt->fetchAll();
 
         $total = 0;
@@ -260,25 +305,138 @@ class AgentIAController extends Controller {
         return $stmt->fetchAll();
     }
 
+    protected function getRawInput(): string {
+        return file_get_contents('php://input');
+    }
+
     /**
      * Récupère l'historique des 30 derniers jours
      */
     private function getHistorique30j(): array {
+        $agencyId = AgencyContext::resolveAgencyId();
         $query = "
             SELECT 
                 DATE(t.created_at) as date_jour,
                 COUNT(*) as nb_transactions,
-                SUM(t.montant) as volume_jour
+                SUM(t.montant) as volume_total
             FROM transaction t
             WHERE t.created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
             AND t.statut = 'VALIDEE'
+        ";
+
+        $params = [];
+        if ($agencyId !== null) {
+            $query .= " AND t.id_agence = ?";
+            $params[] = $agencyId;
+        }
+
+        $query .= "
             GROUP BY DATE(t.created_at)
             ORDER BY DATE(t.created_at) DESC
         ";
 
         $stmt = $this->db->prepare($query);
-        $stmt->execute();
+        $stmt->execute($params);
         return $stmt->fetchAll();
+    }
+
+    protected function buildPredictionSummary(array $history): array {
+        if (empty($history)) {
+            return [
+                'forecast_transactions' => 0,
+                'forecast_volume' => 0,
+                'trend' => 'stable',
+            ];
+        }
+
+        $values = array_values(array_filter($history, fn($row) => is_array($row)));
+        if (empty($values)) {
+            return [
+                'forecast_transactions' => 0,
+                'forecast_volume' => 0,
+                'trend' => 'stable',
+            ];
+        }
+
+        $recentWindow = array_slice($values, -14);
+        $recentTransactions = array_map(fn($row) => (int)($row['nb_transactions'] ?? 0), $recentWindow);
+        $recentVolume = array_map(fn($row) => (float)($row['volume_total'] ?? 0), $recentWindow);
+
+        $avgTransactions = (float)array_sum($recentTransactions) / max(1, count($recentTransactions));
+        $avgVolume = (float)array_sum($recentVolume) / max(1, count($recentVolume));
+
+        $lastTransactions = (int)($recentTransactions[count($recentTransactions) - 1] ?? 0);
+        $lastVolume = (float)($recentVolume[count($recentVolume) - 1] ?? 0);
+        $previousTransactions = (int)($recentTransactions[count($recentTransactions) - 2] ?? $lastTransactions);
+        $previousVolume = (float)($recentVolume[count($recentVolume) - 2] ?? $lastVolume);
+
+        $trendTransactions = $previousTransactions > 0
+            ? (($lastTransactions - $previousTransactions) / $previousTransactions) * 100
+            : 0;
+        $trendVolume = $previousVolume > 0
+            ? (($lastVolume - $previousVolume) / $previousVolume) * 100
+            : 0;
+
+        $seasonalityBaselineTransactions = $avgTransactions;
+        $seasonalityBaselineVolume = $avgVolume;
+
+        $forecastDate = null;
+        $lastDate = $values[count($values) - 1]['date_jour'] ?? null;
+        if (is_string($lastDate) && strtotime($lastDate) !== false) {
+            $forecastDate = date('Y-m-d', strtotime($lastDate . ' +1 day'));
+        }
+
+        $weekdayBuckets = [];
+        foreach ($values as $row) {
+            $rowDate = $row['date_jour'] ?? null;
+            if (is_string($rowDate) && strtotime($rowDate) !== false) {
+                $weekday = (int)date('w', strtotime($rowDate));
+                $weekdayBuckets[$weekday][] = $row;
+            }
+        }
+
+        if ($forecastDate !== null) {
+            $forecastWeekday = (int)date('w', strtotime($forecastDate));
+            $sameWeekdayValues = $weekdayBuckets[$forecastWeekday] ?? [];
+            if (!empty($sameWeekdayValues)) {
+                $weekdayAvgTransactions = (float)array_sum(array_map(fn($row) => (int)($row['nb_transactions'] ?? 0), $sameWeekdayValues)) / count($sameWeekdayValues);
+                $weekdayAvgVolume = (float)array_sum(array_map(fn($row) => (float)($row['volume_total'] ?? 0), $sameWeekdayValues)) / count($sameWeekdayValues);
+
+                $seasonalityBaselineTransactions = max(
+                    $avgTransactions,
+                    ($avgTransactions * 0.25) + ($weekdayAvgTransactions * 0.75)
+                );
+                $seasonalityBaselineVolume = max(
+                    $avgVolume,
+                    ($avgVolume * 0.25) + ($weekdayAvgVolume * 0.75)
+                );
+            }
+        }
+
+        $smoothedTransactions = max(0, (int) round($seasonalityBaselineTransactions));
+        $smoothedVolume = max(0, (float) round($seasonalityBaselineVolume, 2));
+
+        $trend = $trendTransactions >= 0 ? 'up' : 'down';
+        $growthFactorTransactions = 0.0;
+        $growthFactorVolume = 0.0;
+
+        if ($lastTransactions > $avgTransactions * 1.5 || $lastVolume > $avgVolume * 1.5) {
+            $trend = 'volatile';
+            $growthFactorTransactions = 0.05;
+            $growthFactorVolume = 0.05;
+        } else {
+            $growthFactorTransactions = max(-0.2, min(0.2, $trendTransactions / 100));
+            $growthFactorVolume = max(-0.2, min(0.2, $trendVolume / 100));
+        }
+
+        $forecastTransactions = max(0, (int) round($smoothedTransactions * (1 + $growthFactorTransactions)));
+        $forecastVolume = max(0, (float) round($smoothedVolume * (1 + $growthFactorVolume), 2));
+
+        return [
+            'forecast_transactions' => $forecastTransactions,
+            'forecast_volume' => $forecastVolume,
+            'trend' => $trend,
+        ];
     }
 
     /**
@@ -476,6 +634,14 @@ class AgentIAController extends Controller {
             number_format($tx_jour['volume_total'], 0, ',', ' ')
         );
 
+        $predictionSummary = $this->buildPredictionSummary($donnees['historique_30j'] ?? []);
+        $predictionText = sprintf(
+            "PRÉVISION COURTE DURÉE : %d transactions et %.2f FCFA de volume estimés à partir de la tendance récente (%s).",
+            $predictionSummary['forecast_transactions'],
+            $predictionSummary['forecast_volume'],
+            $predictionSummary['trend'] === 'up' ? 'hausse' : 'stabilité/réduction'
+        );
+
         // Formatter les commissions
         $comm_text = '';
         if (!empty($comm_mois['total_mois']) || !empty($comm_mois['par_service'])) {
@@ -588,6 +754,8 @@ $alertes_text
 
 $tx_text
 
+$predictionText
+
 $comm_text
 
 $anomalies_text
@@ -618,7 +786,7 @@ PROMPT;
     /**
      * Appelle l'API Claude (Anthropic)
      */
-    private function appelClaude(string $prompt): string {
+    protected function appelClaude(string $prompt): string {
         $agentConfig = require ROOT_PATH . '/config/agent.php';
         $provider = Config::get('AI_PROVIDER', $agentConfig['provider'] ?? 'anthropic');
 

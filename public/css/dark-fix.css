@@ -1,0 +1,15 @@
+/* dark-fix.css
+   Forcer une couleur de texte lisible en mode sombre
+*/
+:root[data-theme='dark'] body,
+.theme-dark,
+.theme-dark body,
+.theme-dark body * {
+  color: #e2e8f0 !important;
+}
+
+/* éviter qu'un élément ait un fond blanc masquant le texte */
+.theme-dark .app-card,
+.theme-dark .app-card * {
+  background-color: transparent !important;
+}

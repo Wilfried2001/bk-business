@@ -2,7 +2,47 @@
 //  Interactions et fonctionnalités JavaScript
 // ============================================================
 
+function setupThemeToggle() {
+  const toggle = document.getElementById("theme-toggle");
+  if (!toggle) return;
+
+  const applyTheme = (theme) => {
+    const isDark = theme === "dark";
+    document.documentElement.setAttribute("data-theme", theme);
+    document.documentElement.classList.toggle("theme-dark", isDark);
+    document.documentElement.classList.toggle("theme-light", !isDark);
+    document.body.classList.toggle("theme-dark", isDark);
+    document.body.classList.toggle("theme-light", !isDark);
+
+    toggle.innerHTML = `<i data-lucide="${isDark ? "sun" : "moon"}" aria-hidden="true"></i>`;
+    if (window.lucide) {
+      lucide.replace();
+    }
+
+    const label = isDark ? "Passer au mode clair" : "Passer au mode nuit";
+    toggle.setAttribute("aria-label", label);
+    toggle.setAttribute("title", label);
+    localStorage.setItem("bk-theme", theme);
+  };
+
+  const storedTheme = localStorage.getItem("bk-theme");
+  const prefersDark =
+    window.matchMedia &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const initialTheme = storedTheme || (prefersDark ? "dark" : "light");
+  applyTheme(initialTheme);
+
+  toggle.addEventListener("click", () => {
+    const nextTheme =
+      document.documentElement.getAttribute("data-theme") === "dark"
+        ? "light"
+        : "dark";
+    applyTheme(nextTheme);
+  });
+}
+
 document.addEventListener("DOMContentLoaded", function () {
+  setupThemeToggle();
   setupDismissButtons();
   setupDropdowns();
   setupCollapseToggles();
@@ -150,7 +190,9 @@ function setupCommissionModeToggle() {
           </button>
         </div>
       `;
-      row.querySelector(".remove-tranche-row").addEventListener("click", () => row.remove());
+      row
+        .querySelector(".remove-tranche-row")
+        .addEventListener("click", () => row.remove());
       if (window.lucide) {
         lucide.replace();
       }
@@ -339,7 +381,9 @@ function initDashboardCharts() {
 
     const commDailyCanvas = document.getElementById("commissionsDailyChart");
     if (commDailyCanvas) {
-      const cfg = JSON.parse(commDailyCanvas.getAttribute("data-chart") || "{}");
+      const cfg = JSON.parse(
+        commDailyCanvas.getAttribute("data-chart") || "{}",
+      );
       new Chart(commDailyCanvas, {
         type: "line",
         data: {

@@ -23,6 +23,9 @@
                     <a class="app-nav-link" href="<?= url('transactions/create') ?>">
                         <i data-lucide="circle-plus"></i> Nouvelle transaction
                     </a>
+                    <a class="app-nav-link" href="<?= url('transferts-float') ?>">
+                        <i data-lucide="shuffle"></i> Transferts de float
+                    </a>
                     <?php endif; ?>
                 </div>
 

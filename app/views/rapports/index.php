@@ -179,9 +179,9 @@
                     <tbody>
                         <?php foreach ($transactions as $tx): ?>
                         <tr>
-                            <td class="text-xs text-slate-500">#<?= e($tx['id_transaction']) ?></td>
+                            <td class="text-xs bk-muted">#<?= e($tx['id_transaction']) ?></td>
                             <td><?= e(formatDate($tx['date_heure'])) ?></td>
-                            <td class="font-semibold text-slate-800"><?= e($tx['nom_service']) ?></td>
+                            <td class="font-semibold"><?= e($tx['nom_service']) ?></td>
                             <td><?= e($tx['libelle_type']) ?></td>
                             <td class="text-right font-semibold"><?= e(formatMontant((float)$tx['montant'])) ?></td>
                             <td class="hidden md:table-cell"><?= e($tx['nom_agent']) ?></td>
@@ -215,7 +215,7 @@
                     <tbody>
                         <?php foreach ($benefices as $benefice): ?>
                         <tr>
-                            <td class="font-semibold text-slate-800"><?= e($benefice['nom_service']) ?></td>
+                            <td class="font-semibold"><?= e($benefice['nom_service']) ?></td>
                             <td><?= e($benefice['categorie']) ?></td>
                             <td class="text-right"><?= e(formatMontant((float)$benefice['total_commission'])) ?></td>
                             <td class="text-right"><?= e(formatMontant((float)$benefice['total_benefice'])) ?></td>

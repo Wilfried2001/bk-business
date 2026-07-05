@@ -14,10 +14,11 @@ class StockController extends Controller {
 
         $soldeModel  = new SoldeService();
         $alerteModel = new AlerteSolde();
+        $agencyId = AgencyContext::resolveAgencyId();
 
         $this->render('stocks/index', [
-            'soldes'  => $soldeModel->getAllAvecSeuils(),
-            'alertes' => $alerteModel->getActives(),
+            'soldes'  => $soldeModel->getAllAvecSeuils($agencyId),
+            'alertes' => $alerteModel->getActives($agencyId),
         ], 'Gestion des stocks');
     }
 
@@ -39,8 +40,8 @@ class StockController extends Controller {
 
         $this->render('stocks/show', [
             'service'        => $service,
-            'soldes'         => $soldeModel->getByService((int)$id),
-            'seuilHistories' => $seuilModel->getHistoryByService((int)$id),
+            'soldes'         => $soldeModel->getByService((int)$id, AgencyContext::resolveAgencyId()),
+            'seuilHistories' => $seuilModel->getHistoryByService((int)$id, AgencyContext::resolveAgencyId()),
         ], 'Stock — ' . $service['nom']);
     }
 
@@ -70,8 +71,9 @@ class StockController extends Controller {
             $this->redirect('stocks/' . $id);
         }
 
+        $agencyId = AgencyContext::resolveAgencyId();
         $solde = $soldeModel->find($idSolde);
-        if (!$solde || (int)$solde['id_service'] !== (int)$service['id_service']) {
+        if (!$solde || (int)$solde['id_service'] !== (int)$service['id_service'] || ($agencyId !== null && (int)($solde['id_agence'] ?? 0) !== $agencyId)) {
             Session::flash('error', 'Ce seuil ne correspond pas à ce service.');
             $this->redirect('stocks/' . $id);
         }
@@ -115,8 +117,9 @@ class StockController extends Controller {
         $montant = (float) $normalizedMontant;
 
         $soldeModel = new SoldeService();
+        $agencyId = AgencyContext::resolveAgencyId();
         $solde = $soldeModel->find($idSolde);
-        if (!$solde || (int)$solde['id_service'] !== (int)$service['id_service']) {
+        if (!$solde || (int)$solde['id_service'] !== (int)$service['id_service'] || ($agencyId !== null && (int)($solde['id_agence'] ?? 0) !== $agencyId)) {
             Session::flash('error', 'Ce solde ne correspond pas à ce service.');
             $this->redirect('stocks/' . $id);
         }
