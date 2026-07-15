@@ -24,6 +24,7 @@ $router->post('/transactions/:id/cancel',  'Transaction', 'cancel', ['AGENT', 'S
 
 // ── Stocks ───────────────────────────────────────────────────
 $router->get('/stocks',           'Stock', 'index', ['SUPERVISEUR', 'COMPTABLE', 'DG']);
+$router->get('/stocks/reconciliation', 'Stock', 'reconciliation', ['SUPERVISEUR', 'COMPTABLE', 'DG']);
 $router->get('/stocks/:id',       'Stock', 'show', ['SUPERVISEUR', 'COMPTABLE', 'DG']);
 $router->post('/stocks/:id/seuil','Stock', 'saveThreshold', ['SUPERVISEUR', 'COMPTABLE', 'DG']);
 // Mettre à jour le montant actuel d'un solde (initial ou ajustement)

@@ -23,6 +23,21 @@ class StockController extends Controller {
     }
 
 // Méthode show : gère show. 
+    public function reconciliation(): void {
+        Auth::requireRole(['SUPERVISEUR', 'COMPTABLE', 'DG']);
+        require_once APP_PATH . '/models/OperatorReconciliation.php';
+
+        $reconciliation = new OperatorReconciliation();
+        $this->render('stocks/reconciliation', [
+            'operatorNames' => [
+                'Orange Money',
+                'MTN Money',
+                'Ria',
+            ],
+            'reconciliation' => $reconciliation,
+        ], 'Rapprochement opérateurs');
+    }
+
     public function show(string $id): void {
         Auth::requireRole(['SUPERVISEUR', 'COMPTABLE', 'DG']);
         require_once APP_PATH . '/models/SoldeService.php';

@@ -54,6 +54,9 @@
                 <a href="<?= url('stocks/seuils/all') ?>" class="bk-btn bk-btn-secondary">
                     <i data-lucide="sliders-horizontal"></i> Configurer seuils
                 </a>
+                <a href="<?= url('stocks/reconciliation') ?>" class="bk-btn bk-btn-primary">
+                    <i data-lucide="refresh-cw"></i> Rapprochement opérateurs
+                </a>
             </div>
         <?php endif; ?>
     </section>

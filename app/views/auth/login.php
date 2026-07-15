@@ -7,6 +7,7 @@
     <title><?= e($pageTitle ?? ('Connexion — ' . APP_NAME)) ?></title>
     <link rel="stylesheet" href="<?= url('css/style.css') ?>">
     <link rel="stylesheet" href="<?= url('css/business-views.css') ?>">
+    <link rel="stylesheet" href="<?= url('css/dark-fix.css') ?>">
     <script src="<?= url('js/icons.js') ?>"></script>
 </head>
 

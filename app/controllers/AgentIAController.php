@@ -44,6 +44,26 @@ class AgentIAController extends Controller {
             $this->json(['success' => false, 'error' => 'Question vide'], 400);
         }
 
+        if ($mode === 'chat' && $this->isGreetingQuestion($question)) {
+            $this->json([
+                'success' => true,
+                'reponse' => 'Bonjour ! Je suis là pour vous aider.',
+                'mode'    => $mode,
+                'timestamp' => date('c'),
+            ]);
+            return;
+        }
+
+        if ($mode === 'chat' && $this->isGreetingQuestion($question)) {
+            $this->json([
+                'success' => true,
+                'reponse' => 'Bonjour ! Je suis là pour vous aider.',
+                'mode'    => $mode,
+                'timestamp' => date('c'),
+            ]);
+            return;
+        }
+
         try {
             // 1. Récupérer les données en temps réel
             $donnees = $this->collecteDataRealtime();
@@ -110,6 +130,40 @@ class AgentIAController extends Controller {
     /**
      * Récupère l'état actuel des soldes (Float + Caisse)
      */
+    private function isGreetingQuestion(string $question): bool {
+        $clean = mb_strtolower(trim($question));
+        $patterns = [
+            '/\bbonjour\b/',
+            '/\bsalut\b/',
+            '/\bhello\b/',
+            '/\bbonsoir\b/',
+            '/\bcoucou\b/',
+            '/\bhey\b/',
+            '/\bsalutations\b/',
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $clean)) {
+                return true;
+            }
+        }
+
+        $assistantPatterns = [
+            '/\bagent\b/',
+            '/\bia\b/',
+            '/\bassistant\b/',
+            '/\bbot\b/',
+        ];
+
+        foreach ($assistantPatterns as $pattern) {
+            if (preg_match($pattern, $clean) && preg_match('/\b(bonjour|salut|hello|bonsoir|coucou|hey|salutations)\b/', $clean)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private function getSoldes(?int $agencyId = null): array {
         $query = "
             SELECT 
@@ -350,6 +404,16 @@ class AgentIAController extends Controller {
         }
 
         $values = array_values(array_filter($history, fn($row) => is_array($row)));
+        $resolveRowDate = function (array $row): ?string {
+            foreach (['date_jour', 'jour', 'date', 'created_at'] as $key) {
+                $value = $row[$key] ?? null;
+                if (is_string($value) && $value !== '') {
+                    return $value;
+                }
+            }
+
+            return null;
+        };
         if (empty($values)) {
             return [
                 'forecast_transactions' => 0,
@@ -381,14 +445,14 @@ class AgentIAController extends Controller {
         $seasonalityBaselineVolume = $avgVolume;
 
         $forecastDate = null;
-        $lastDate = $values[count($values) - 1]['date_jour'] ?? null;
+        $lastDate = $resolveRowDate($values[count($values) - 1] ?? []);
         if (is_string($lastDate) && strtotime($lastDate) !== false) {
             $forecastDate = date('Y-m-d', strtotime($lastDate . ' +1 day'));
         }
 
         $weekdayBuckets = [];
         foreach ($values as $row) {
-            $rowDate = $row['date_jour'] ?? null;
+            $rowDate = $resolveRowDate($row);
             if (is_string($rowDate) && strtotime($rowDate) !== false) {
                 $weekday = (int)date('w', strtotime($rowDate));
                 $weekdayBuckets[$weekday][] = $row;
@@ -404,11 +468,11 @@ class AgentIAController extends Controller {
 
                 $seasonalityBaselineTransactions = max(
                     $avgTransactions,
-                    ($avgTransactions * 0.25) + ($weekdayAvgTransactions * 0.75)
+                    ($avgTransactions * 0.15) + ($weekdayAvgTransactions * 0.85)
                 );
                 $seasonalityBaselineVolume = max(
                     $avgVolume,
-                    ($avgVolume * 0.25) + ($weekdayAvgVolume * 0.75)
+                    ($avgVolume * 0.15) + ($weekdayAvgVolume * 0.85)
                 );
             }
         }
@@ -776,6 +840,8 @@ $question
 RÉPONDS MAINTENANT :
 - Si la question est une salutation ou une demande générale, réponds en 1 phrase simple.
 - Ne fournis pas de détails sur les alertes ou les soldes tant que l'utilisateur ne le demande pas explicitement.
+- Ne fais aucun commentaire sur ta propre réponse.
+- Ne mets aucune information entre parenthèses concernant la structure ou la nature de ta réponse.
 - Si l'utilisateur demande des informations sur les alertes, donne un résumé concis, puis propose une action claire.
 $guichet_text
 PROMPT;

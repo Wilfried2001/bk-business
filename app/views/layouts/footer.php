@@ -28,7 +28,7 @@
                         <small>Assistant opérationnel</small>
                     </div>
                     <button type="button" class="app-close app-close-white" data-dismiss="modal"
-                        aria-label="Fermer"></button>
+                        aria-label="Fermer"><i data-lucide="x"></i></button>
                 </div>
                 <div class="app-modal-body ai-assistant-body">
                     <div id="ai-modal-chat" class="ai-modal-chat" aria-live="polite">
@@ -64,7 +64,7 @@
                         <label class="sr-only" for="ai-modal-input">Question rapide</label>
                         <input type="text" id="ai-modal-input" class="app-field" placeholder="Votre question..."
                             autocomplete="off">
-                        <button class="app-btn app-btn-primary" id="ai-modal-send" type="button">
+                        <button class="app-btn ai-send-btn" id="ai-modal-send" type="button">
                             <i data-lucide="send-horizontal"></i>
                             <span id="ai-modal-send-text">Envoyer</span>
                             <span id="ai-modal-send-spinner" class="ai-modal-spinner hidden" aria-hidden="true"></span>
@@ -86,16 +86,17 @@
     align-items: center;
     justify-content: center;
     border-radius: 9999px;
-    background: #020617;
-    color: #fff;
-    box-shadow: 0 20px 25px -5px rgba(15, 23, 42, .18), 0 8px 10px -6px rgba(15, 23, 42, .18);
-    transition: transform .15s ease, box-shadow .15s ease, background-color .15s ease;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    background: linear-gradient(135deg, #0f172a 0%, #1f3d72 100%);
+    color: #f8fafc;
+    box-shadow: 0 18px 35px -10px rgba(15, 23, 42, 0.35);
+    transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
 }
 
 .ai-floating-btn:hover {
     transform: translateY(-2px);
-    background: #1e293b;
-    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, .32);
+    filter: brightness(1.06);
+    box-shadow: 0 22px 40px -12px rgba(15, 23, 42, 0.42);
 }
 
 .ai-floating-btn svg {
@@ -112,23 +113,63 @@
     gap: 1rem;
 }
 
+.app-modal-header.ai-modal-header,
+#aiAssistantModal .app-modal-header {
+    background: transparent;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+    color: #0f172a;
+}
+
+#aiAssistantModal .app-modal-header h5,
+#aiAssistantModal .app-modal-header small {
+    color: #0f172a;
+}
+
+#aiAssistantModal .app-close.app-close-white {
+    background-color: rgba(15, 23, 42, 0.08);
+    color: #0f172a;
+    border-radius: .75rem;
+    width: 2.25rem;
+    height: 2.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#aiAssistantModal .app-close.app-close-white:hover {
+    background-color: rgba(15, 23, 42, 0.14);
+}
+
+#aiAssistantModal .app-close.app-close-white svg {
+    height: 1rem;
+    width: 1rem;
+}
+
+#aiAssistantModal .app-modal-dialog {
+    background-color: #f8fafc;
+}
+
+#aiAssistantModal .app-modal-body {
+    padding: 1.25rem;
+}
+
 .ai-modal-chat {
     display: flex;
     height: min(24rem, 52vh);
     flex-direction: column;
     overflow-y: auto;
-    border-radius: .5rem;
-    border: 1px solid #e2e8f0;
-    background: #f8fafc;
+    border-radius: .75rem;
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    background: rgba(248, 250, 252, 0.92);
     padding: 1rem;
 }
 
 .ai-welcome {
     display: flex;
     gap: .75rem;
-    border-radius: .5rem;
-    border: 1px solid #e2e8f0;
-    background: #fff;
+    border-radius: .75rem;
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    background: #ffffff;
     padding: .875rem;
 }
 
@@ -138,7 +179,7 @@
 }
 
 .ai-welcome strong {
-    color: #020617;
+    color: #0f172a;
     font-size: .875rem;
 }
 
@@ -159,20 +200,21 @@
     align-items: center;
     justify-content: center;
     gap: .5rem;
-    border-radius: .375rem;
-    border: 1px solid #cbd5e1;
-    background: #fff;
-    padding: .5rem .75rem;
-    color: #475569;
+    border-radius: .625rem;
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    background: #ffffff;
+    padding: .6rem .75rem;
+    color: #334155;
     font-size: .875rem;
     font-weight: 600;
-    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease, transform .15s ease;
 }
 
 .ai-shortcut:hover {
-    border-color: #c7d2fe;
+    border-color: rgba(59, 130, 246, 0.32);
     background: #f8fafc;
-    color: #3730a3;
+    color: #1d4ed8;
+    transform: translateY(-1px);
 }
 
 .ai-input-row {
@@ -189,9 +231,9 @@
 .ai-modal-message {
     margin-bottom: .75rem;
     max-width: min(34rem, 88%);
-    border-radius: .5rem;
-    border: 1px solid #e2e8f0;
-    background: #fff;
+    border-radius: .75rem;
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    background: #ffffff;
     padding: .75rem .875rem;
     color: #334155;
     font-size: .875rem;
@@ -201,22 +243,22 @@
 
 .ai-modal-message.user {
     align-self: flex-end;
-    border-color: #c7d2fe;
-    background: #eef2ff;
-    color: #312e81;
+    border-color: rgba(59, 130, 246, 0.28);
+    background: #eff6ff;
+    color: #1e3a8a;
 }
 
 .ai-modal-message.ai {
     align-self: flex-start;
-    border-left: 4px solid #4f46e5;
+    border-left: 4px solid #0f766e;
 }
 
 .ai-modal-message.error {
     align-self: flex-start;
-    border-color: #fecaca;
-    border-left: 4px solid #d32f2f;
+    border-color: rgba(248, 113, 113, 0.28);
+    border-left: 4px solid #dc2626;
     background: #fef2f2;
-    color: #7f1d1d;
+    color: #991b1b;
 }
 
 .ai-modal-spinner {
@@ -226,6 +268,17 @@
     border: 2px solid rgba(255, 255, 255, .45);
     border-top-color: #fff;
     animation: aiModalSpin .75s linear infinite;
+}
+
+.ai-send-btn {
+    border-radius: .625rem;
+    background: linear-gradient(135deg, #0f172a 0%, #1f3d72 100%);
+    color: #f8fafc;
+    border: 1px solid rgba(148, 163, 184, 0.24);
+}
+
+.ai-send-btn:hover {
+    filter: brightness(1.05);
 }
 
 @keyframes aiModalSpin {

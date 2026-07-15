@@ -670,7 +670,8 @@ body.theme-dark .tx-card,
 body.theme-dark .tx-operation-grid,
 body.theme-dark .tx-service-grid,
 body.theme-dark .bk-report-types,
-body.theme-dark .bk-service-grid {
+body.theme-dark .bk-service-grid,
+body.theme-dark .bk-page * {
     color: #f8fafc;
 }
 
@@ -703,7 +704,10 @@ body.theme-dark .bk-choice,
 body.theme-dark .bk-empty,
 body.theme-dark .tx-card,
 body.theme-dark .tx-stepper .tx-step,
-body.theme-dark .tx-stepper-six .tx-step {
+body.theme-dark .tx-stepper-six .tx-step,
+body.theme-dark .bk-page .bk-field,
+body.theme-dark .bk-page .bk-select,
+body.theme-dark .bk-page .bk-label {
     background: #111827;
     border-color: rgba(148, 163, 184, 0.24);
     color: #f8fafc;

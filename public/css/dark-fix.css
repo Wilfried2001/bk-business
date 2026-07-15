@@ -13,3 +13,22 @@
 .theme-dark .app-card * {
   background-color: transparent !important;
 }
+
+/* Specific fixes for the dashboard KPI alert card */
+body.theme-dark .business-kpi-card.accent-alert,
+body.theme-dark .business-kpi-card.accent-alert * {
+  color: #f8fafc !important;
+}
+
+/* Ensure the small risk badge remains legible on dark backgrounds */
+body.theme-dark .business-kpi-card.accent-alert .risk-badge {
+  background-color: rgba(255,255,255,0.06) !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(255,255,255,0.04) !important;
+}
+
+/* keep the accent icon visible */
+body.theme-dark .business-kpi-card.accent-alert .kpi-icon {
+  background-color: rgba(245,158,11,0.16) !important;
+  color: #f59e0b !important;
+}

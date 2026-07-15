@@ -10,6 +10,22 @@
                 </button>
             </div>
 
+            <?php
+                $health = $sidebarHealth ?? [
+                    'score' => 0,
+                    'statut' => 'Indisponible',
+                    'couleur' => '#64748b',
+                    'nb_alertes' => 0,
+                    'disponibilite_soldes' => 0,
+                    'nb_transactions_jour' => 0,
+                ];
+                $healthTitle = sprintf(
+                    'Alertes actives: %d | Disponibilite des soldes: %d%% | Transactions du jour: %d',
+                    (int)$health['nb_alertes'],
+                    (int)$health['disponibilite_soldes'],
+                    (int)$health['nb_transactions_jour']
+                );
+            ?>
             <nav class="sidebar-nav">
                 <div class="nav-group">
                     <p>Principal</p>
@@ -37,6 +53,7 @@
                     </a>
                     <a class="app-nav-link" href="<?= url('alertes') ?>">
                         <i data-lucide="bell-ring"></i> Alertes
+                        <span class="app-badge sidebar-alert-count <?= (int)$health['nb_alertes'] > 0 ? 'app-badge-info' : 'app-badge-secondary' ?>"><?= e((int)$health['nb_alertes']) ?></span>
                     </a>
                     <a class="app-nav-link" href="<?= url('presences') ?>">
                         <i data-lucide="calendar-check-2"></i> Présences
