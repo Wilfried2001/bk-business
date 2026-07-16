@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="<?= url('css/business-views.css') ?>">
     <link rel="stylesheet" href="<?= url('css/dark-fix.css') ?>">
     <link rel="stylesheet" href="<?= url('css/sidebar-alert.css') ?>">
-    <script>
+    <script nonce="<?= e(cspNonce()) ?>">
         (function () {
             const storedTheme = localStorage.getItem('bk-theme');
             const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;

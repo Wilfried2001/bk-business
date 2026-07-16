@@ -33,7 +33,7 @@
     }
 ?>
 
-<script>
+<script nonce="<?= e(cspNonce()) ?>">
     window.baseUrl = <?= json_encode(BASE_URL) ?>;
     window.canEditSeuil = <?= json_encode(Auth::hasRole(['SUPERVISEUR', 'COMPTABLE', 'DG'])) ?>;
     window.csrfToken = <?= json_encode(generateCsrf()) ?>;

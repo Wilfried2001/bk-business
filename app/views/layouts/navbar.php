@@ -18,7 +18,7 @@
             <form class="topbar-agency" method="post" action="<?= url('agency/switch') ?>">
                 <?= csrfField() ?>
                 <label class="sr-only" for="agency_switch">Agence active</label>
-                <select id="agency_switch" name="agency_id" class="bk-field" onchange="this.form.submit()">
+                <select id="agency_switch" name="agency_id" class="bk-field">
                     <option value="">Toutes les agences</option>
                     <?php foreach ($agences ?? [] as $agency): ?>
                         <option value="<?= e((string)($agency['id_agence'] ?? '')) ?>" <?= ((int)($agency['id_agence'] ?? 0) === (int)AgencyContext::getCurrentAgencyId()) ? 'selected' : '' ?>><?= e($agency['nom'] ?? '') ?></option>

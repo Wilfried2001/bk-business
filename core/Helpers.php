@@ -69,3 +69,12 @@ function isEmpty(mixed $value): bool {
 function url(string $path = ''): string {
     return BASE_URL . '/' . ltrim($path, '/');
 }
+
+// Générer ou retourner le nonce CSP pour la requête en cours
+function cspNonce(): string {
+    static $nonce = null;
+    if ($nonce === null) {
+        $nonce = base64_encode(random_bytes(16));
+    }
+    return $nonce;
+}

@@ -309,7 +309,7 @@
 }
 </style>
 
-<script>
+<script nonce="<?= e(cspNonce()) ?>">
 document.addEventListener('DOMContentLoaded', function() {
     const chatMessagesDiv = document.getElementById('chat-messages');
     const welcomeContainer = document.getElementById('welcome-container');

@@ -67,7 +67,7 @@
     </section>
 </div>
 
-<script>
+<script nonce="<?= e(cspNonce()) ?>">
     document.addEventListener('DOMContentLoaded', function () {
         const form = document.querySelector('.transaction-edit-form');
         if (!form) return;

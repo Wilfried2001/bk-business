@@ -259,7 +259,7 @@
     </form>
 </div>
 
-<script>
+<script nonce="<?= e(cspNonce()) ?>">
     document.addEventListener('DOMContentLoaded', function () {
         const typesByService = <?= json_encode($typesByService ?? [], JSON_UNESCAPED_UNICODE) ?>;
         const form = document.getElementById('transactionWizardForm');

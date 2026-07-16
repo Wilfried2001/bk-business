@@ -10,6 +10,10 @@ class TypeOperation extends Model {
     protected string $table      = 'type_operation';
     protected string $primaryKey = 'id_type';
 
+    public function getAllUniqueByLabel(string $orderBy = 'libelle'): array {
+        return $this->deduplicateByLabel($this->all($orderBy));
+    }
+
 // Méthode getByService : gère getByService. 
     public function getByService(int $idService): array {
         $service = $this->queryOne("SELECT nom, categorie FROM service WHERE id_service = ?", [$idService]);
@@ -43,10 +47,27 @@ class TypeOperation extends Model {
         }
 
         if (!empty($merged)) {
-            return array_values($merged);
+            return $this->deduplicateByLabel(array_values($merged));
         }
 
-        return $this->query("SELECT * FROM type_operation WHERE libelle != ? ORDER BY libelle", [self::ADJUSTMENT_LABEL]);
+        return $this->deduplicateByLabel(
+            $this->query("SELECT * FROM type_operation WHERE libelle != ? ORDER BY libelle", [self::ADJUSTMENT_LABEL])
+        );
+    }
+
+    private function deduplicateByLabel(array $types): array {
+        $unique = [];
+
+        foreach ($types as $type) {
+            $label = trim((string)($type['libelle'] ?? ''));
+            if ($label === '') {
+                continue;
+            }
+
+            $unique[$label] = $type;
+        }
+
+        return array_values($unique);
     }
 
     private function labelsForService(array $service): array {

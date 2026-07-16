@@ -300,7 +300,7 @@
 }
         </style>
 
-        <script>
+        <script nonce="<?= e(cspNonce()) ?>">
 document.addEventListener('DOMContentLoaded', function() {
     const aiBtn = document.getElementById('ai-assistant-btn');
     const aiModal = document.getElementById('aiAssistantModal');
@@ -499,7 +499,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <?php endif; ?>
 
         <script src="<?= url('js/script.js') ?>"></script>
-        <script>
+        <script nonce="<?= e(cspNonce()) ?>">
 document.addEventListener('DOMContentLoaded', function() {
     const lateModal = document.getElementById('presenceLateModal');
     const lateForm = document.getElementById('presenceLateForm');

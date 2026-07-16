@@ -115,7 +115,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="<?= e(cspNonce()) ?>">
     document.getElementById('refuseTransferBtn').addEventListener('click', function () {
         document.getElementById('rejectModal').hidden = false;
     });

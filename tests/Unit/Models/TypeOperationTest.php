@@ -30,4 +30,33 @@ class TypeOperationTest extends TestCase {
         $types = $typeModel->getByService((int)$service[0]['id_service']);
         $this->assertIsArray($types);
     }
+
+    public function testGetAllUniqueByLabelDeduplicatesSameLabels(): void {
+        require_once APP_PATH . '/models/TypeOperation.php';
+
+        $typeModel = new TypeOperation();
+        $label = 'TEST_DUPLICATE_TYPE_' . uniqid();
+
+        try {
+            $typeModel->create([
+                'libelle' => $label,
+                'description' => 'Premier enregistrement de test',
+                'impact_float' => 0,
+                'impact_caisse' => 0,
+            ]);
+            $typeModel->create([
+                'libelle' => $label,
+                'description' => 'Deuxième enregistrement de test',
+                'impact_float' => 0,
+                'impact_caisse' => 0,
+            ]);
+
+            $types = $typeModel->getAllUniqueByLabel('libelle');
+            $matchingTypes = array_values(array_filter($types, fn($type) => ($type['libelle'] ?? '') === $label));
+
+            $this->assertCount(1, $matchingTypes);
+        } finally {
+            $typeModel->execute('DELETE FROM type_operation WHERE libelle = ?', [$label]);
+        }
+    }
 }

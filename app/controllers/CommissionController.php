@@ -48,7 +48,7 @@ class CommissionController extends Controller {
         $this->render('commissions/config', [
             'configs'   => $configs,
             'services'  => $serviceModel->getAllActifs(),
-            'types'     => $typeModel->all('libelle'),
+            'types'     => $typeModel->getAllUniqueByLabel('libelle'),
         ], 'Paramétrage des commissions');
     }
 

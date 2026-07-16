@@ -71,6 +71,9 @@ document.addEventListener("DOMContentLoaded", function () {
   // ── Activer les tables interactives ──
   setupTableActions();
 
+  // ── Gérer le switch d'agence sans attribut inline ──
+  setupAgencySwitch();
+
   // ── Gérer le menu mobile ──
   setupMobileMenu();
   // ── Toast automatique ──
@@ -560,6 +563,18 @@ function setupTableActions() {
 
   tables.forEach((table) => {
     table.classList.add("app-table");
+  });
+}
+
+function setupAgencySwitch() {
+  const agencySwitch = document.getElementById("agency_switch");
+  if (!agencySwitch) return;
+
+  agencySwitch.addEventListener("change", function () {
+    const form = this.closest("form");
+    if (form) {
+      form.submit();
+    }
   });
 }
 

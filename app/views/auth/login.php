@@ -57,7 +57,7 @@
         </div>
     </div>
 
-    <script>
+    <script nonce="<?= e(cspNonce()) ?>">
         if (window.lucide) {
             lucide.replace();
         }
